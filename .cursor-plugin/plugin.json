@@ -1,0 +1,17 @@
+{
+  "name": "wcag",
+  "displayName": "WCAG Audit and Remediation",
+  "description": "Audits web pages, PDFs, documents, and mobile apps against WCAG 2.2 and fixes what it finds when asked. Loads as seven skills.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Caleb Hendren",
+    "url": "https://github.com/CalebHendren"
+  },
+  "homepage": "https://github.com/CalebHendren/wcag",
+  "repository": "https://github.com/CalebHendren/wcag",
+  "license": "MIT",
+  "keywords": ["accessibility", "wcag", "a11y", "audit", "remediation", "pdf-ua", "section-508"],
+  "category": "quality",
+  "skills": "./skills/",
+  "rules": "./rules/"
+}
