@@ -14,6 +14,10 @@ Audit is the default here as everywhere. If the user asked a question rather tha
 fixes, report and change nothing. This skill carries edit permissions because it also
 describes remediation, not because auditing may edit.
 
+A document is not a web page, so WCAG's conformance model does not apply to it directly.
+`../../references/non-web.md` covers WCAG2ICT, which is what makes a WCAG statement about a
+document coherent, and the language to use for it.
+
 ## Why the source document is the highest-leverage place to work
 
 Most inaccessible PDFs began as an inaccessible Word file or slide deck. Every hour spent

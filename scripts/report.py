@@ -164,7 +164,13 @@ def normalize(findings):
     return findings
 
 
-def dedupe(findings):
+def dedupe(findings, keep_ids=False):
+    """Drop duplicate findings and renumber the survivors.
+
+    Renumbering keeps ids contiguous when several tools are merged, but it
+    rewrites ids a person may have referenced from one finding to another. Pass
+    keep_ids to leave hand-authored ids alone.
+    """
     seen, unique = set(), []
     for finding in findings:
         key = (finding.get("sc"), finding.get("location"),
@@ -176,12 +182,21 @@ def dedupe(findings):
     unique.sort(key=lambda f: (SEVERITY_ORDER.index(f.get("severity", "medium"))
                                if f.get("severity") in SEVERITY_ORDER else 2,
                                f.get("sc", "")))
-    for index, finding in enumerate(unique, 1):
-        finding["id"] = f"F-{index:03d}"
+    if not keep_ids:
+        for index, finding in enumerate(unique, 1):
+            finding["id"] = f"F-{index:03d}"
     return unique
 
 
-def criteria_status(findings, level, passed):
+def criteria_status(findings, level, passed, not_applicable=frozenset()):
+    """Give every criterion at the level a status.
+
+    A criterion with no finding defaults to "Not tested" rather than "Pass",
+    because a tool that did not look at something has not established anything
+    about it. Genuine passes and genuine non-applicability are asserted by the
+    person writing the report, through --passed and --not-applicable, so the
+    default never flatters the result.
+    """
     wanted = LEVEL_SETS[level]
     failed = {f.get("sc") for f in findings if f.get("confidence") != "needs-review"}
     review = {f.get("sc") for f in findings if f.get("confidence") == "needs-review"}
@@ -193,6 +208,8 @@ def criteria_status(findings, level, passed):
             status = "Fail"
         elif number in review:
             status = "Needs review"
+        elif number in not_applicable:
+            status = "Not applicable"
         elif number in passed:
             status = "Pass"
         else:
@@ -201,11 +218,11 @@ def criteria_status(findings, level, passed):
     return rows
 
 
-def markdown(findings, sources, args, passed):
+def markdown(findings, sources, args, passed, not_applicable=frozenset()):
     today = datetime.date.today().isoformat()
     counts = Counter(f.get("severity", "medium") for f in findings)
     levels = Counter(f.get("level", "n/a") for f in findings)
-    rows = criteria_status(findings, args.level, passed)
+    rows = criteria_status(findings, args.level, passed, not_applicable)
     status_counts = Counter(r[4] for r in rows)
 
     out = [f"# Accessibility audit: {args.title}", ""]
@@ -224,7 +241,8 @@ def markdown(findings, sources, args, passed):
     out.append(
         f"{len(not_tested)} of {len(rows)} Level {args.level} criteria were not "
         "evaluated in this run. A criterion with no finding has not been shown to "
-        "pass, only left unchecked.")
+        "pass, only left unchecked. Where a criterion genuinely does not apply to "
+        "this target, mark it not applicable rather than leaving it here.")
     out.append("")
     if not_tested:
         out.append("Criteria still needing assessment: "
@@ -302,9 +320,9 @@ def markdown(findings, sources, args, passed):
     return "\n".join(out)
 
 
-def vpat(findings, sources, args, passed):
+def vpat(findings, sources, args, passed, not_applicable=frozenset()):
     today = datetime.date.today().isoformat()
-    rows = criteria_status(findings, args.level, passed)
+    rows = criteria_status(findings, args.level, passed, not_applicable)
     by_sc = {}
     for finding in findings:
         by_sc.setdefault(finding.get("sc"), []).append(finding)
@@ -318,6 +336,8 @@ def vpat(findings, sources, args, passed):
             return "Partially Supports" if count == 1 else "Does Not Support"
         if status == "Pass":
             return "Supports"
+        if status == "Not applicable":
+            return "Not Applicable"
         return "Not Evaluated"
 
     out = [f"# Accessibility Conformance Report: {args.title}", "",
@@ -337,6 +357,8 @@ def vpat(findings, sources, args, passed):
         if related:
             remark = (f"{len(related)} finding(s). "
                       + related[0].get("issue", "").replace("|", "/")[:160])
+        elif status == "Not applicable":
+            remark = "The product has no content or functionality this criterion covers."
         elif status == "Not tested":
             remark = "Not evaluated in this audit."
         else:
@@ -371,12 +393,25 @@ def main(argv=None) -> int:
     parser.add_argument("--scope", help="a paragraph describing what was in scope")
     parser.add_argument("--passed", default="",
                         help="comma separated SC numbers verified as passing")
+    parser.add_argument("--not-applicable", default="", dest="not_applicable",
+                        help="comma separated SC numbers with no relevant content in "
+                             "this target, for example 1.2.x on a document with no media")
+    parser.add_argument("--keep-ids", action="store_true", dest="keep_ids",
+                        help="preserve the finding ids as written, instead of "
+                             "renumbering them on merge. Use this when findings "
+                             "cross-reference each other by id.")
     parser.add_argument("--out", help="write here instead of stdout")
     args = parser.parse_args(argv)
 
     findings, sources = load(args.findings)
-    findings = dedupe(normalize(findings))
+    findings = dedupe(normalize(findings), keep_ids=args.keep_ids)
     passed = {s.strip() for s in args.passed.split(",") if s.strip()}
+    not_applicable = {s.strip() for s in args.not_applicable.split(",") if s.strip()}
+    overlap = passed & not_applicable
+    if overlap:
+        print(f"error: {sorted(overlap)} marked both passed and not applicable",
+              file=sys.stderr)
+        return 2
 
     if args.format == "csv":
         write_csv(findings, args.out)
@@ -385,7 +420,7 @@ def main(argv=None) -> int:
         return 0
 
     text = (vpat if args.format == "vpat" else markdown)(
-        findings, sources, args, passed)
+        findings, sources, args, passed, not_applicable)
     if args.out:
         with open(args.out, "w", encoding="utf-8") as handle:
             handle.write(text)

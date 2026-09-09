@@ -99,7 +99,7 @@ ls "${CLAUDE_PLUGIN_ROOT}/scripts" 2>/dev/null || find . -type d -name scripts -
 | `html_audit.py` | Static structural checks on HTML source with no browser needed. |
 | `axe_scan.py` | axe-core against a live URL through Playwright, when a browser is available. |
 | `pdf_audit.py` | Tag tree, reading order, alt text, language, and form labels in a PDF. |
-| `report.py` | Turns a findings JSON file into the markdown report or a VPAT skeleton. |
+| `report.py` | Turns findings JSON into the markdown report or a VPAT skeleton. Use `--passed` and `--not-applicable` so the criteria table reflects what you actually established. |
 
 Every script prints usage with `--help` and writes findings JSON in the schema below. Run
 the scripts first, then spend your own effort on what they cannot see.

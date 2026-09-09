@@ -28,6 +28,12 @@ benchmark, so audit to AA and say that the standard is not statutory.
 WCAG 2.0 Level A and AA by reference and apply them to web content, electronic documents,
 and software. Procurement usually asks for an ACR based on the VPAT template.
 
+For non-web software, E207.2 excepts four criteria and Conformance Requirement 3: 2.4.1
+Bypass Blocks, 2.4.5 Multiple Ways, 3.2.3 Consistent Navigation, and 3.2.4 Consistent
+Identification. Marking those not applicable on a native app is correct under 508 and
+wrong under a plain WCAG audit, so say which standard the row is answering. Confirm the
+current text at access-board.gov before relying on the list.
+
 **Section 504.** Rules issued by the Department of Health and Human Services and the
 Department of Education in 2024 set WCAG 2.1 Level AA for recipients of federal financial
 assistance in their respective sectors, with their own compliance schedules.
@@ -51,8 +57,11 @@ and mobile apps, with an accessibility statement and a feedback mechanism requir
 **EN 301 549.** The harmonized European standard that both directives lean on. Version
 3.2.1, published in March 2021, references WCAG 2.1 Level AA and adds requirements beyond
 WCAG for non-web documents, non-web software, hardware, support services, and an
-accessibility statement. A later version aligning with WCAG 2.2 has been in preparation.
-Check the current published version at the ETSI portal.
+accessibility statement. A version aligning with WCAG 2.2 has been progressing through
+ETSI. Two things move separately: ETSI publishing a version, and that version being cited
+in the Official Journal, which is what makes it carry the presumption of conformance.
+Confirm both at the ETSI portal before relying on either, and say in the report which
+version you tested against.
 
 EN 301 549 matters for an audit because it covers ground WCAG does not: Clause 5 generic
 requirements, Clause 6 two-way voice and video, Clause 8 hardware, Clause 11 software
@@ -89,3 +98,6 @@ in the scope section, and mention the driving obligation separately:
 
 When an obligation reaches beyond WCAG, as EN 301 549 and Section 508 both do, say which
 clauses were outside the scope of the audit rather than implying the audit covered them.
+
+For anything that is not a web page, `non-web.md` covers how WCAG applies at all, and the
+exceptions each regime grants.

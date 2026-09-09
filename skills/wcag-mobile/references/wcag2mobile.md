@@ -100,12 +100,18 @@ than on the web, but still worth checking in multilingual apps.
 ## Conformance language for a mobile report
 
 WCAG's conformance model is defined for web pages, so a native app cannot "conform to WCAG
-2.2 Level AA" in the specification's own terms. Write the position accurately:
+2.2 Level AA" in the specification's own terms. Anchor the position to WCAG2ICT, which is a
+completed Group Note that regulations reference, and cite WCAG2Mobile as the mobile-specific
+reading:
 
-> Assessed against the WCAG 2.2 Level AA success criteria, applied to a native application
-> through the W3C WCAG2Mobile guidance. 14 criteria were not satisfied. WCAG's formal
-> conformance model is defined for web pages, so this report states criterion-level results
-> rather than a conformance claim.
+> Assessed against the WCAG 2.2 Level A and AA success criteria as applied to non-web
+> software through WCAG2ICT, with WCAG2Mobile used for the mobile-specific reading of
+> individual criteria. 14 criteria were not satisfied. WCAG's formal conformance model is
+> defined for web pages, so this report states criterion-level results rather than a
+> conformance claim.
+
+`../../../references/non-web.md` covers the substitution rules and the Section 508
+exceptions for non-web software.
 
 When the obligation is EN 301 549, say which of its software clauses were and were not in
 scope. When it is ADA Title II, note that the rule names mobile applications directly and

@@ -16,18 +16,28 @@ describes remediation, not because auditing may edit.
 
 ## What WCAG means on a mobile app
 
-WCAG was written for web content, and its normative conformance model does not apply
-cleanly to a native app. The W3C published *Guidance on Applying WCAG 2.2 to Mobile
-Applications* (WCAG2Mobile) as an informative note: it is not a new standard, it changes
-nothing in WCAG, and it does not define how a mobile app conforms. What it does is explain
-how each Level A and AA criterion reads when the platform is an app rather than a page.
+WCAG was written for web content, and its normative conformance model is defined for web
+pages, so a native app cannot conform to WCAG in the specification's own terms. Two W3C
+notes bridge the gap, and they do different jobs:
+
+**WCAG2ICT** (*Guidance on Applying WCAG 2 to Non-Web Information and Communications
+Technologies*) is a completed W3C Group Note from October 2024 covering WCAG 2.0, 2.1, and
+2.2. It supplies the substitution rules that make each criterion meaningful for non-web
+software, and it is the document regulations already reference. Anchor a claim to this one.
+
+**WCAG2Mobile** (*Guidance on Applying WCAG 2.2 to Mobile Applications*) is a narrower and
+more recent draft note, first published in May 2025. It gives the mobile-specific reading of
+the Level A and AA criteria, which is more concrete than WCAG2ICT for an app. Cite it as
+supporting interpretation.
+
+`../../references/non-web.md` covers both, including the substitutions and the language for
+a conformance position. Read it before writing one.
 
 Two practical consequences for a report:
 
 First, use WCAG criteria as the vocabulary, because that is what the obligation is written
-in, and say in the method section that the criteria were applied through the WCAG2Mobile
-interpretation. Do not claim conformance in the WCAG sense for a native app without naming
-that caveat.
+in, and say in the method section which interpretation you applied. Do not claim
+conformance in the WCAG sense for a native app without naming that caveat.
 
 Second, where a legal obligation covers native apps, it usually reaches them through a
 different route. ADA Title II names mobile applications directly. EN 301 549 covers native

@@ -712,14 +712,29 @@ class Audit:
                              "unmute.",
                              "Load the page and confirm no audio starts by itself.")
                 if node.has("autoplay") and tag == "video":
-                    self.add("2.2.2", "Pause, Stop, Hide", "A", "medium", node,
-                             "The video autoplays.",
-                             "Motion that runs for more than five seconds with no pause "
-                             "control distracts users with attention and vestibular "
-                             "disorders.",
-                             "Provide a visible pause control, or respect "
-                             "prefers-reduced-motion.",
-                             "Confirm the motion can be paused without leaving the page.")
+                    # A native player with controls supplies the pause mechanism the
+                    # criterion asks for, so reporting it as a failure is wrong. The
+                    # residual concern is reduced-motion preference, which is an
+                    # advisory rather than a 2.2.2 failure.
+                    if node.has("controls"):
+                        self.add("2.3.3", "Animation from Interactions", "AAA",
+                                 "advisory", node,
+                                 "The video autoplays. Controls are present, so 2.2.2 is "
+                                 "satisfied, but the motion still starts by itself.",
+                                 "Users with vestibular disorders see motion they did not "
+                                 "ask for, even though they can now stop it.",
+                                 "Respect prefers-reduced-motion, or remove autoplay.",
+                                 "Set the reduced-motion preference and confirm the video "
+                                 "does not start on its own.")
+                    else:
+                        self.add("2.2.2", "Pause, Stop, Hide", "A", "medium", node,
+                                 "The video autoplays with no controls attribute.",
+                                 "Motion that runs for more than five seconds with no "
+                                 "pause control distracts users with attention and "
+                                 "vestibular disorders, and there is no way to stop it.",
+                                 "Add controls, or provide a visible pause control.",
+                                 "Confirm the motion can be paused without leaving the "
+                                 "page.")
                 if not node.has("controls") and not node.get("aria-label"):
                     self.add("2.1.1", "Keyboard", "A", "medium", node,
                              f"The {tag} element has no controls attribute.",

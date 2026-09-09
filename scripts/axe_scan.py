@@ -61,14 +61,20 @@ def find_axe_source(explicit: str | None) -> tuple[str, str]:
     for path in candidates:
         if path.is_file():
             return path.read_text(encoding="utf-8"), str(path)
+    print("axe-core not found locally, trying the CDN. Many managed environments "
+          "block it;\nif this fails, run `npm install axe-core` in this directory.",
+          file=sys.stderr)
     try:
         with urllib.request.urlopen(AXE_CDN, timeout=30) as response:
             return response.read().decode("utf-8"), AXE_CDN
     except Exception as exc:
         raise SystemExit(
-            f"Could not load axe-core: {exc}\n"
-            "Install it locally with:  npm install axe-core\n"
-            "or pass a path with --axe-path /path/to/axe.min.js")
+            f"Could not load axe-core: {exc}\n\n"
+            "Fix it with either of these, in order of preference:\n"
+            "  npm install axe-core          (then re-run; the script finds it)\n"
+            "  --axe-path /path/to/axe.min.js\n\n"
+            "Without a browser scan, run scripts/html_audit.py on the source instead. "
+            "It covers less, and it says so in its output.")
 
 
 

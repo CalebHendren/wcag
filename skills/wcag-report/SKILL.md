@@ -25,6 +25,13 @@ criterion at the target level appears with a status, and untested criteria are m
 untested rather than passed. Edit the output afterwards; the script produces a correct
 skeleton, not a finished document.
 
+Two flags stop the default from overstating the uncertainty. `--passed` names the criteria
+you verified as passing, and `--not-applicable` names the ones with no relevant content in
+this target, such as the media criteria on a document containing no audio or video. Assert
+both deliberately, because a criterion left at "not tested" says nobody looked, and a page
+of those when you did look reads as a thinner audit than you performed. A finding always
+wins over either flag, so you cannot mark away a failure.
+
 ## The audit report
 
 Covered in `../wcag/SKILL.md`. Two things decide whether it is any good:

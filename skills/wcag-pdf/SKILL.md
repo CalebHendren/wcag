@@ -18,6 +18,10 @@ PDF is the format where the gap between "looks fine" and "readable" is widest. A
 prints perfectly can be completely unreadable to a screen reader, and nothing on screen
 tells you which one you have. Everything below is about finding out.
 
+A document is not a web page, so WCAG's conformance model does not apply to it directly.
+`../../references/non-web.md` covers WCAG2ICT, which is what makes a WCAG statement about a
+document coherent, and the language to use for it.
+
 ## The one thing that decides everything
 
 A PDF is accessible only if it is **tagged**: it carries a structure tree describing which

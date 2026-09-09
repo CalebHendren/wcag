@@ -13,6 +13,7 @@ owns them, for example `skills/wcag-pdf/references/`.
 | `severity.md` | Ranking findings, or ordering the report. |
 | `legal.md` | Choosing the target version and level, or answering a compliance question. |
 | `media.md` | Any audio or video, in any format. |
+| `non-web.md` | Any target that is not a web page: native apps, PDFs, office documents, kiosks. Read it before writing a conformance position for one. |
 
 The four criteria files together cover all 87 WCAG 2.2 success criteria: 31 at Level A, 24
 at Level AA, and 31 at Level AAA, plus 4.1.1 Parsing, which was removed in 2.2. Titles,
