@@ -4,3 +4,4 @@ node_modules/
 scripts/vendor/
 .DS_Store
 *.egg-info/
+wcag-workspace/

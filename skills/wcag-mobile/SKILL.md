@@ -2,13 +2,17 @@
 name: wcag-mobile
 description: "Audit or fix accessibility in mobile apps and mobile content against WCAG 2.2 and the W3C WCAG2Mobile guidance. Use for native iOS (UIKit or SwiftUI), native Android (Views or Compose), React Native, Flutter, hybrid and webview apps, responsive mobile web, and app store or in-app content. Covers VoiceOver and TalkBack, accessibility labels and traits, focus and swipe order, Dynamic Type and text scaling, touch target size, gestures and drag alternatives, orientation, motion actuation, and live announcements. Load this whenever someone mentions a mobile app, iOS, Android, VoiceOver, TalkBack, Swift, Kotlin, React Native, Flutter, accessibilityLabel, contentDescription, or asks whether an app works for blind or motor-impaired users."
 license: MIT
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write, Edit
 ---
 
 # Mobile accessibility: audit and remediation
 
 Read `../wcag/SKILL.md` first if you have not. It sets the mode, the finding record, and
 the report shape.
+
+Audit is the default here as everywhere. If the user asked a question rather than for
+fixes, report and change nothing. This skill carries edit permissions because it also
+describes remediation, not because auditing may edit.
 
 ## What WCAG means on a mobile app
 
@@ -162,6 +166,14 @@ than the whole file.
 
 `references/wcag2mobile.md` covers how the Level A and AA criteria read for a mobile app,
 including the ones that need reinterpretation and the ones that rarely apply.
+
+
+Read `../wcag/SKILL.md` first if you have not. It sets the mode, the finding record, and
+the report shape.
+
+Audit is the default here as everywhere. If the user asked a question rather than for
+fixes, report and change nothing. This skill carries edit permissions because it also
+describes remediation, not because auditing may edit.
 
 ## When remediating
 

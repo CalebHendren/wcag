@@ -46,6 +46,17 @@ else
   echo "  skip pypdf not installed"
 fi
 
+echo "axe_scan.py"
+r=$(python3 -c "
+import importlib.util
+spec = importlib.util.spec_from_file_location('a', 'scripts/axe_scan.py')
+m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+cases = [(['wcag111'], '1.1.1'), (['wcag1410'], '1.4.10'), (['wcag258'], '2.5.8'),
+         (['wcag2411'], '2.4.11'), (['best-practice'], None)]
+print(all(m.criterion_from_tags(t) == w for t, w in cases))
+")
+check "$r" "True" "axe tags map to criterion numbers, including two-digit ones"
+
 echo "report.py"
 python3 scripts/html_audit.py tests/fixtures/failing-page.html --json > /tmp/wcag-test-findings.json
 r=$(python3 scripts/report.py /tmp/wcag-test-findings.json --title Test --level AA | grep -c 'Not tested')

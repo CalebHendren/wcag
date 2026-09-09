@@ -2,14 +2,19 @@
 name: wcag-web
 description: "Audit or fix accessibility on web pages, web apps, and UI components against WCAG 2.2. Use for any HTML, CSS, JavaScript, React, Vue, Svelte, Angular, or design-system target: a live URL, a component in source, a template, a Storybook story, or an HTML email. Covers keyboard operation, focus management, ARIA, forms and error handling, contrast, reflow and zoom, target size, and the criteria new in WCAG 2.2. Load this whenever someone asks whether a page or component is accessible, mentions axe, Lighthouse, screen readers, alt text, ARIA, focus traps, color contrast, or asks to make a page WCAG or Section 508 compliant."
 license: MIT
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write, Edit
 ---
 
 # Web accessibility: audit and remediation
 
-Read `../wcag/SKILL.md` first if you have not. It sets the mode (audit reads,
-remediation edits), the finding record, and the report shape. This file covers what is
-specific to the web.
+Read `../wcag/SKILL.md` first if you have not. It sets the mode, the finding record, and
+the report shape.
+
+Audit is the default here as everywhere. If the user asked a question rather than for
+fixes, report and change nothing. This skill carries edit permissions because it also
+describes remediation, not because auditing may edit.
+
+This file covers what is specific to the web.
 
 ## Work out what you can actually test
 
@@ -36,6 +41,8 @@ finding from every page, which is why component-level auditing beats page-level 
 anything with a component library.
 
 ## Run the tools first
+
+The commands below use paths relative to the plugin root. The core skill's "Find the bundled scripts" section explains how to locate it when the working directory is elsewhere.
 
 ```bash
 # Live page, default WCAG 2.2 A and AA rule sets
@@ -164,6 +171,16 @@ Report as findings: ARIA references pointing at ids that do not exist; `aria-hid
 on something still focusable; roles applied without their required properties; an
 `aria-label` that contradicts the visible text (2.5.3); and `role="presentation"` on
 something interactive.
+
+
+Read `../wcag/SKILL.md` first if you have not. It sets the mode, the finding record, and
+the report shape.
+
+Audit is the default here as everywhere. If the user asked a question rather than for
+fixes, report and change nothing. This skill carries edit permissions because it also
+describes remediation, not because auditing may edit.
+
+This file covers what is specific to the web.
 
 ## When remediating
 

@@ -2,13 +2,17 @@
 name: wcag-pdf
 description: "Audit or fix accessibility in PDF files against WCAG 2.2 and PDF/UA (ISO 14289). Use for any PDF: reports, forms, statements, scanned documents, brochures, invoices, policy documents, or a folder of them. Covers tagging, reading order, alternative text, headings, tables, form field labels, bookmarks, document language, and OCR of scans. Load this whenever someone mentions a PDF and accessibility, asks whether a document is screen-reader friendly, mentions tagged PDF, PDF/UA, Section 508 documents, remediation, Acrobat's accessibility checker, veraPDF, or the Matterhorn Protocol."
 license: MIT
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write, Edit
 ---
 
 # PDF accessibility: audit and remediation
 
-Read `../wcag/SKILL.md` first if you have not. It sets the mode (audit reads, remediation
-edits), the finding record, and the report shape.
+Read `../wcag/SKILL.md` first if you have not. It sets the mode, the finding record, and
+the report shape.
+
+Audit is the default here as everywhere. If the user asked a question rather than for
+fixes, report and change nothing. This skill carries edit permissions because it also
+describes remediation, not because auditing may edit.
 
 PDF is the format where the gap between "looks fine" and "readable" is widest. A PDF that
 prints perfectly can be completely unreadable to a screen reader, and nothing on screen
@@ -23,6 +27,8 @@ on the page, and on anything with columns, sidebars, or a header it guesses wron
 
 Check this first, because it decides whether you are writing an audit or recommending a
 rebuild:
+
+The commands below use paths relative to the plugin root. The core skill's "Find the bundled scripts" section explains how to locate it when the working directory is elsewhere.
 
 ```bash
 python3 scripts/pdf_audit.py document.pdf
@@ -142,6 +148,18 @@ Where a fuller check is available, recommend it and say what it adds:
 Recommending these is not an admission that the audit was thin. It is how a real
 accessibility team works, and the skill's value is in the judgement calls those tools do
 not make.
+
+
+Read `../wcag/SKILL.md` first if you have not. It sets the mode, the finding record, and
+the report shape.
+
+Audit is the default here as everywhere. If the user asked a question rather than for
+fixes, report and change nothing. This skill carries edit permissions because it also
+describes remediation, not because auditing may edit.
+
+PDF is the format where the gap between "looks fine" and "readable" is widest. A PDF that
+prints perfectly can be completely unreadable to a screen reader, and nothing on screen
+tells you which one you have. Everything below is about finding out.
 
 ## When remediating
 

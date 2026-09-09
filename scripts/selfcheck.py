@@ -34,6 +34,10 @@ EXPECTED_LEVELS = {"A": 31, "AA": 24, "AAA": 31}
 
 EM_DASH = "\u2014"
 
+# Directories that hold generated or third-party content rather than this
+# repository's own prose and code.
+SKIP = {".git", "node_modules", "wcag-workspace", "__pycache__", "vendor"}
+
 problems: list[str] = []
 notes: list[str] = []
 
@@ -132,7 +136,7 @@ def check_skills() -> None:
 
 def check_links() -> None:
     for path in ROOT.rglob("*.md"):
-        if ".git" in path.parts or "node_modules" in path.parts:
+        if SKIP.intersection(path.parts):
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
         for match in re.finditer(r"`((?:\.\.?/)[^`\s()]+\.(?:md|py|json))`", text):
@@ -211,7 +215,7 @@ def check_prose() -> None:
     """The docs follow the anti-slop rules, which ban the em dash outright."""
     offenders = []
     for path in list(ROOT.rglob("*.md")) + list(ROOT.rglob("*.py")):
-        if ".git" in path.parts or "node_modules" in path.parts:
+        if SKIP.intersection(path.parts):
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
         if EM_DASH in text:

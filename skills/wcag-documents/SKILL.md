@@ -2,13 +2,17 @@
 name: wcag-documents
 description: "Audit or fix accessibility in office documents and publications against WCAG 2.2. Use for Word (.docx), PowerPoint (.pptx), Excel (.xlsx), Google Docs, Slides and Sheets, OpenDocument files, EPUB and ebooks, Markdown, and any document that will be exported to PDF or published to the web. Covers heading styles, alt text, reading order, table headers, list structure, link text, color and contrast, slide layouts, spreadsheet structure, and export settings that preserve accessibility. Load this whenever someone asks about an accessible Word document, slide deck, spreadsheet, ebook, or how to prepare a document so the exported PDF is accessible."
 license: MIT
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write, Edit
 ---
 
 # Document accessibility: audit and remediation
 
 Read `../wcag/SKILL.md` first if you have not. It sets the mode, the finding record, and
 the report shape.
+
+Audit is the default here as everywhere. If the user asked a question rather than for
+fixes, report and change nothing. This skill carries edit permissions because it also
+describes remediation, not because auditing may edit.
 
 ## Why the source document is the highest-leverage place to work
 
@@ -163,6 +167,14 @@ The export step destroys accessibility more often than the authoring does. Check
 - After export, run `python3 scripts/pdf_audit.py output.pdf` and confirm the file is
   tagged, has a language, has a title, and has the headings you expect. An export that
   silently dropped tagging is common enough to be worth checking every time.
+
+
+Read `../wcag/SKILL.md` first if you have not. It sets the mode, the finding record, and
+the report shape.
+
+Audit is the default here as everywhere. If the user asked a question rather than for
+fixes, report and change nothing. This skill carries edit permissions because it also
+describes remediation, not because auditing may edit.
 
 ## When remediating
 

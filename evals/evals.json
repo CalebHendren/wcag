@@ -1,0 +1,64 @@
+{
+  "skill_name": "wcag",
+  "skill_path": "skills/",
+  "notes": "Prompts are written the way a real user would type them. Eval 1 tests that audit mode does not edit files. Eval 2 tests PDF triage. Eval 3 tests that remediation refuses to invent content. Eval 4 tests mobile routing and the WCAG2Mobile framing.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "audit-does-not-edit",
+      "prompt": "Can you check tests/fixtures/failing-page.html for accessibility problems? I need to know what's wrong before our compliance review next week.",
+      "expected_output": "An audit report naming specific WCAG criteria with file locations. The HTML file must be unchanged on disk.",
+      "assertions": [
+        "The fixture file tests/fixtures/failing-page.html is byte-identical after the run",
+        "Findings cite specific WCAG success criterion numbers such as 1.3.1 or 4.1.2",
+        "Findings include a line number or selector locating each problem",
+        "The output distinguishes what was tested from what was not tested",
+        "No conformance claim is made on the basis of a static check"
+      ],
+      "files": ["tests/fixtures/failing-page.html"]
+    },
+    {
+      "id": 1,
+      "name": "pdf-untagged-triage",
+      "prompt": "We have to make this PDF accessible for a state contract: tests/fixtures/untagged.pdf. What's the situation and what will it take?",
+      "expected_output": "Identifies the document as untagged, treats that as the blocking issue rather than listing downstream symptoms, and asks about or recommends fixing the source file rather than hand-remediating the PDF.",
+      "assertions": [
+        "Correctly identifies that the PDF is untagged",
+        "Explains what untagged means for a screen reader user",
+        "Recommends fixing the source document and re-exporting rather than hand-tagging the PDF",
+        "Does not list dozens of downstream findings that are all consequences of the missing tag tree",
+        "Names the standard being tested against with a version and a level"
+      ],
+      "files": ["tests/fixtures/untagged.pdf"]
+    },
+    {
+      "id": 2,
+      "name": "remediate-without-inventing",
+      "prompt": "Fix the accessibility issues in tests/fixtures/failing-page.html for me. Go ahead and edit the file.",
+      "expected_output": "Edits the file to fix the derivable problems (label associations, lang, title, iframe title, positive tabindex, div click handler) while declining to invent alt text for images whose content cannot be determined, and saying so.",
+      "assertions": [
+        "The file is actually edited",
+        "The html element gains a lang attribute and the page gains a title",
+        "Form inputs gain associated labels using the visible text that was already present",
+        "Alt text is NOT invented for hero.png, whose content cannot be determined from the file",
+        "The response explicitly says which findings need the content owner",
+        "The div with the onclick handler becomes a real button, or gains role plus tabindex plus key handling"
+      ],
+      "files": ["tests/fixtures/failing-page.html"]
+    },
+    {
+      "id": 3,
+      "name": "mobile-conformance-framing",
+      "prompt": "our android app is up for a public sector procurement and they're asking if it meets wcag 2.2 AA. its kotlin + compose. what do i actually need to check and can we even claim that?",
+      "expected_output": "Routes to mobile guidance, gives a Compose-specific checklist, and correctly explains that WCAG's conformance model is defined for web pages so a native app states criterion-level results rather than a conformance claim.",
+      "assertions": [
+        "Explains that WCAG's formal conformance model is defined for web pages and a native app cannot conform in that sense",
+        "References the W3C WCAG2Mobile guidance or equivalent framing for applying WCAG to apps",
+        "Gives Jetpack Compose specific guidance, such as semantics, contentDescription, or Role",
+        "Names the criteria most often failed on mobile, such as 2.5.1, 2.5.7, 2.5.8, 1.4.4, or 4.1.3",
+        "Mentions EN 301 549 or the procurement standard rather than only WCAG"
+      ],
+      "files": []
+    }
+  ]
+}

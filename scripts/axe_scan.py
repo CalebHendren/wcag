@@ -99,6 +99,24 @@ def find_chromium() -> str | None:
     return None
 
 
+def criterion_from_tags(tags: list[str]) -> str | None:
+    """Read the success criterion number out of axe's tag list.
+
+    axe encodes criteria as digits with no separators: "wcag111" is 1.1.1 and
+    "wcag1410" is 1.4.10. The criterion number is everything after the principle
+    and guideline digits, so a naive fixed-length parse silently drops every
+    two-digit criterion, which is most of what WCAG 2.1 and 2.2 added.
+    """
+    for tag in tags:
+        if not tag.startswith("wcag"):
+            continue
+        digits = tag[4:]
+        if not digits.isdigit() or len(digits) < 3:
+            continue
+        return f"{digits[0]}.{digits[1]}.{int(digits[2:])}"
+    return None
+
+
 def to_finding(rule: dict, node: dict, index: int, needs_review: bool,
                page_url: str) -> dict:
     target = node.get("target") or []
@@ -112,10 +130,7 @@ def to_finding(rule: dict, node: dict, index: int, needs_review: bool,
     level = "AA" if any(t.endswith("aa") for t in tags) else \
             "AAA" if any(t.endswith("aaa") for t in tags) else \
             "A" if any(t.endswith(("2a", "21a", "22a")) for t in tags) else "n/a"
-    sc = next((t.replace("wcag", "") for t in tags
-               if t.startswith("wcag") and t[4:].isdigit() and len(t) == 7), None)
-    if sc:
-        sc = f"{sc[0]}.{sc[1]}.{sc[2:]}" if len(sc) == 3 else sc
+    sc = criterion_from_tags(tags)
     severity = IMPACT_TO_SEVERITY.get(node.get("impact") or rule.get("impact"), "medium")
     if needs_review:
         severity = "medium" if severity in ("critical", "high") else severity
