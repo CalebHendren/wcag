@@ -35,6 +35,45 @@ GROUPING_TYPES = {"Document", "Part", "Art", "Sect", "Div", "BlockQuote",
                   "Caption", "TOC", "TOCI", "Index", "NonStruct", "Private"}
 
 
+def merged_attributes(node) -> dict:
+    """Return the structure element's /A attribute dictionaries, merged.
+
+    /A is either one dictionary or an array of them, optionally interleaved
+    with revision numbers. Table properties such as Scope, RowSpan, ColSpan and
+    Headers live here rather than as direct keys on the element, which is why
+    looking for node["/Scope"] finds nothing on a correctly built file and
+    nothing on a broken one alike.
+    """
+    raw = node.get("/A")
+    if raw is None:
+        return {}
+    try:
+        raw = raw.get_object()
+    except Exception:
+        return {}
+    merged = {}
+    for entry in (raw if isinstance(raw, list) else [raw]):
+        try:
+            entry = entry.get_object()
+        except Exception:
+            continue
+        if isinstance(entry, dict):
+            for key in entry:
+                try:
+                    merged[str(key)] = entry[key]
+                except Exception:
+                    pass
+    return merged
+
+
+def _int_attr(attrs: dict, name: str, default: int = 1) -> int:
+    value = attrs.get(name, default)
+    try:
+        return max(1, int(value))
+    except (TypeError, ValueError):
+        return default
+
+
 def load_reader(path):
     try:
         from pypdf import PdfReader
@@ -57,6 +96,7 @@ class PdfAudit:
         self.reader, self.backend = load_reader(path)
         self.findings = []
         self.tags = []
+        self.tables = []
         self.stats = {
             "pages": len(self.reader.pages),
             "tagged": False,
@@ -65,6 +105,12 @@ class PdfAudit:
             "figures": 0,
             "figures_without_alt": 0,
             "tables": 0,
+            "table_cells": 0,
+            "header_cells": 0,
+            "header_cells_with_scope": 0,
+            "data_cells_with_headers": 0,
+            "cells_with_spans": 0,
+            "untagged_content": 0,
             "links": 0,
             "form_fields": 0,
             "pages_without_text": [],
@@ -304,6 +350,70 @@ class PdfAudit:
         elif stype == "Form":
             self.stats["form_fields"] += 1
 
+    def collect_tables(self):
+        """Read every Table element into rows of (kind, attributes)."""
+        root = self.catalog()
+        tree = root.get("/StructTreeRoot")
+        if tree is None:
+            return
+        try:
+            tree = tree.get_object()
+        except Exception:
+            return
+        seen = set()
+
+        def children(node):
+            kids = node.get("/K") if isinstance(node, dict) else None
+            if kids is None:
+                return []
+            try:
+                kids = kids.get_object()
+            except Exception:
+                pass
+            return kids if isinstance(kids, list) else [kids]
+
+        def read_table(node):
+            rows = []
+
+            def descend(current, row=None, depth=0):
+                try:
+                    current = current.get_object()
+                except Exception:
+                    return
+                if not isinstance(current, dict) or depth > 40:
+                    return
+                if id(current) in seen:
+                    return
+                seen.add(id(current))
+                kind = str(current.get("/S", "")).lstrip("/")
+                if kind == "TR":
+                    row = []
+                    rows.append(row)
+                elif kind in ("TH", "TD") and row is not None:
+                    row.append((kind, merged_attributes(current)))
+                for child in children(current):
+                    if not isinstance(child, int):
+                        descend(child, row, depth + 1)
+
+            descend(node)
+            return rows
+
+        def find_tables(node, depth=0):
+            try:
+                node = node.get_object()
+            except Exception:
+                return
+            if not isinstance(node, dict) or depth > 60:
+                return
+            if str(node.get("/S", "")).lstrip("/") == "Table":
+                self.tables.append(read_table(node))
+                return
+            for child in children(node):
+                if not isinstance(child, int):
+                    find_tables(child, depth + 1)
+
+        find_tables(tree)
+
     def check_headings(self):
         levels = []
         for tag in self.tags:
@@ -334,6 +444,14 @@ class PdfAudit:
             previous = level
 
     def check_tables(self):
+        """Check header association, not just header presence.
+
+        A table can carry every TH the standard asks for and still tell a screen
+        reader nothing, because the association between a header and the cells it
+        governs lives in /Scope, or in /Headers and /ID for anything complex. A
+        check that only asks whether TH exists passes exactly the tables that fail
+        their readers.
+        """
         types = [t["type"] for t in self.tags]
         if "Table" in types and "TH" not in types:
             self.add("1.3.1", "Info and Relationships", "A", "high",
@@ -347,6 +465,184 @@ class PdfAudit:
                      "Navigate the table with a screen reader and confirm each cell "
                      "announces its headers.",
                      matterhorn="15-003")
+            return
+
+        for index, rows in enumerate(self.tables, 1):
+            if not rows:
+                continue
+            label = (f"{self.path} (table {index} of {len(self.tables)})"
+                     if len(self.tables) > 1 else f"{self.path} (the table)")
+            cells = [cell for row in rows for cell in row]
+            headers = [c for c in cells if c[0] == "TH"]
+            data = [c for c in cells if c[0] == "TD"]
+            self.stats["table_cells"] += len(cells)
+            self.stats["header_cells"] += len(headers)
+            if not headers:
+                continue
+
+            scoped = [c for c in headers if c[1].get("/Scope")]
+            identified = [c for c in headers if c[1].get("/ID")]
+            associated = [c for c in data if c[1].get("/Headers")]
+            spanned = [c for c in cells
+                       if c[1].get("/RowSpan") or c[1].get("/ColSpan")]
+            self.stats["header_cells_with_scope"] += len(scoped)
+            self.stats["data_cells_with_headers"] += len(associated)
+            self.stats["cells_with_spans"] += len(spanned)
+
+            # A table with headers down the first column as well as across the top
+            # needs more than scope, and gets those wrong more often.
+            first_row_headers = sum(1 for c in rows[0] if c[0] == "TH") if rows else 0
+            row_headers = sum(1 for row in rows[1:] if row and row[0][0] == "TH")
+            both_axes = first_row_headers > 1 and row_headers > 1
+
+            if not scoped and not identified and not associated:
+                self.add("1.3.1", "Info and Relationships", "A",
+                         "critical" if both_axes else "high", label,
+                         f"None of the {len(headers)} header cells carry /Scope, and "
+                         f"none of the {len(data)} data cells carry /Headers. The cells "
+                         "are typed TH and TD, but nothing says which header governs "
+                         "which cell.",
+                         "A screen reader announces cell contents with no header "
+                         "attached, so the reader gets values with nothing to attach "
+                         "them to."
+                         + (" This table has headers on both axes, so every cell needs "
+                            "two headers and currently has none." if both_axes else ""),
+                         "Mark the header row and header column in the source document "
+                         "and re-export, so each TH carries Scope. A table with headers "
+                         "on both axes usually also needs Headers and ID associations.",
+                         "Navigate the table cell by cell with a screen reader and "
+                         "confirm each cell announces the headers that govern it.",
+                         matterhorn="15-003")
+            elif len(scoped) < len(headers) and not associated:
+                self.add("1.3.1", "Info and Relationships", "A", "medium", label,
+                         f"{len(headers) - len(scoped)} of {len(headers)} header cells "
+                         "carry no /Scope.",
+                         "The unscoped headers are left for the reader to guess at, and "
+                         "readers guess differently.",
+                         "Set the scope on every header cell.",
+                         "Confirm each cell announces the right row and column header.")
+
+            if both_axes and not associated and len(data) > 12:
+                self.add("1.3.1", "Info and Relationships", "A", "high", label,
+                         f"The table has headers on both axes and {len(data)} data "
+                         "cells, but no data cell carries /Headers associations.",
+                         "Scope alone resolves a grid only when the layout is regular. "
+                         "In a table this size a reader that guesses wrong attaches the "
+                         "wrong header to the value.",
+                         "Give each header an /ID and each data cell a /Headers array "
+                         "naming the headers that govern it.",
+                         "Spot-check cells in the middle of the table and confirm both "
+                         "headers are announced.",
+                         confidence="needs-review", matterhorn="15-004")
+
+            # Rows narrower than the table imply merged cells. Undeclared, the
+            # reader fills columns left to right and every later cell shifts.
+            widths = []
+            for row in rows:
+                widths.append(sum(_int_attr(a, "/ColSpan") for _kind, a in row))
+            if widths:
+                expected = max(widths)
+                short = [i for i, w in enumerate(widths) if w < expected]
+                if short and not spanned and expected > 1:
+                    sample = ", ".join(f"row {i + 1} has {widths[i]}" for i in short[:4])
+                    self.add("1.3.1", "Info and Relationships", "A", "critical", label,
+                             f"{len(short)} of {len(rows)} rows hold fewer cells than "
+                             f"the table's {expected} columns ({sample}), and no cell "
+                             "declares /RowSpan or /ColSpan.",
+                             "The merged cells the layout depends on are invisible to "
+                             "assistive technology, so the reader fills columns left to "
+                             "right and every cell after a merge is attributed to the "
+                             "wrong column. A user is told a value belongs to a column "
+                             "it does not, which is worse than being told nothing "
+                             "because the answer sounds authoritative.",
+                             "Re-export so merged cells declare their spans. Where the "
+                             "exporter keeps dropping them, simplify the source table "
+                             "so one visual row is one table row.",
+                             "Confirm every row reports the full column count, counting "
+                             "declared spans, and that a screen reader names the correct "
+                             "column for cells after a merge.",
+                             matterhorn="15-005")
+                elif short and spanned:
+                    self.add("1.3.1", "Info and Relationships", "A", "medium", label,
+                             f"{len(short)} of {len(rows)} rows are narrower than the "
+                             f"table's {expected} columns even after counting the "
+                             f"{len(spanned)} declared spans.",
+                             "Some merges are declared and some are not, so part of the "
+                             "grid resolves correctly and part does not.",
+                             "Check the source table for merged cells whose spans did "
+                             "not survive the export.",
+                             "Confirm every row resolves to the full column count.",
+                             confidence="needs-review", matterhorn="15-005")
+
+    def check_untagged_content(self):
+        """Find content that is neither tagged nor marked as an artifact.
+
+        PDF/UA asks every piece of page content to be one or the other. Content in
+        neither state is skipped by readers that navigate the tag tree, which looks
+        like the right outcome when the content is decorative and is silent data loss
+        when it is not. Either way it is a defect, because nothing declared the
+        intent.
+        """
+        if not self.stats["tagged"]:
+            return
+        referenced = set()
+        seen = set()
+
+        def walk(node, depth=0):
+            try:
+                node = node.get_object()
+            except Exception:
+                return
+            if not isinstance(node, dict) or id(node) in seen or depth > 60:
+                return
+            seen.add(id(node))
+            kids = node.get("/K")
+            if kids is None:
+                return
+            try:
+                kids = kids.get_object()
+            except Exception:
+                pass
+            for child in (kids if isinstance(kids, list) else [kids]):
+                if isinstance(child, int):
+                    referenced.add(child)
+                else:
+                    walk(child, depth + 1)
+
+        tree = self.catalog().get("/StructTreeRoot")
+        if tree is None:
+            return
+        walk(tree)
+
+        drawn, artifacts = set(), set()
+        for page in self.reader.pages:
+            try:
+                data = page.get_contents().get_data().decode("latin-1", "replace")
+            except Exception:
+                continue
+            drawn |= {int(n) for n in
+                      re.findall(r"<<\s*/MCID\s+(\d+)\s*>>\s*BDC", data)}
+            artifacts |= {int(m.group(1)) for m in re.finditer(
+                r"/Artifact\s*<<\s*/MCID\s+(\d+)\s*>>\s*BDC", data)}
+
+        orphans = sorted((drawn - referenced) - artifacts)
+        self.stats["untagged_content"] = len(orphans)
+        if not orphans:
+            return
+        listed = ", ".join(str(o) for o in orphans[:10])
+        more = f" and {len(orphans) - 10} more" if len(orphans) > 10 else ""
+        self.add("1.3.1", "Info and Relationships", "A", "medium",
+                 f"{self.path} (marked content {listed}{more})",
+                 f"{len(orphans)} piece(s) of page content are neither referenced by "
+                 "the structure tree nor marked as an artifact.",
+                 "Readers that navigate the tag tree skip this content entirely. That is "
+                 "the right outcome if it is decorative and silent data loss if it is "
+                 "not, and nothing in the file says which.",
+                 "Mark decorative items as artifacts in the authoring tool, and tag "
+                 "anything that carries information so it joins the structure tree.",
+                 "Re-run this check and confirm every drawn item is either tagged or "
+                 "artifacted.",
+                 confidence="needs-review", matterhorn="01-006")
 
     def check_text_layer(self):
         empty = []
@@ -447,7 +743,9 @@ class PdfAudit:
         self.check_metadata()
         self.walk_structure()
         self.check_headings()
+        self.collect_tables()
         self.check_tables()
+        self.check_untagged_content()
         self.check_text_layer()
         self.check_forms()
         if self.stats["tagged"]:
@@ -468,8 +766,8 @@ MANUAL_CHECKS = [
     "PDF structure carries no colour information. (1.4.3, 1.4.11)",
     "Colour as the only cue: check for status, required fields, or chart series shown by "
     "colour alone. (1.4.1)",
-    "Table complexity: tables with merged cells or two header levels need headers/id "
-    "associations, not just scope. (1.3.1)",
+    "Table complexity: where the script reports missing /Headers on a two-axis table, "
+    "confirm against the visual grid which headers each cell actually needs. (1.3.1)",
     "Link text: does each link say where it goes when read on its own? (2.4.4)",
     "Artifacts: are page numbers, running heads, and decorative rules marked as "
     "artifacts rather than read as content? (1.3.1)",
@@ -526,6 +824,15 @@ def main(argv=None):
     print(f"  figures            {stats['figures']} "
           f"({stats['figures_without_alt']} without alt)")
     print(f"  tables             {stats['tables']}")
+    if stats["header_cells"]:
+        print(f"  header cells       {stats['header_cells']} "
+              f"({stats['header_cells_with_scope']} with scope)")
+        print(f"  data cells assoc.  {stats['data_cells_with_headers']} "
+              f"of {stats['table_cells'] - stats['header_cells']} carry /Headers")
+        print(f"  cells with spans   {stats['cells_with_spans']}")
+    if stats.get("untagged_content"):
+        print(f"  untagged content   {stats['untagged_content']} item(s) neither "
+              "tagged nor artifacted")
     print(f"  form fields        {stats['form_fields']}")
     if stats["pages_without_text"]:
         print(f"  pages with no text {len(stats['pages_without_text'])}")

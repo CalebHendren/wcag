@@ -73,8 +73,17 @@ finding list is.
 ## What the script checks and what it cannot
 
 The script reads the file structure: tagging, document language, title and
-DisplayDocTitle, figure alt text, heading levels, table header cells, form field tooltips,
-bookmarks, tab order, and whether pages carry extractable text.
+DisplayDocTitle, figure alt text, heading levels, form field tooltips, bookmarks, tab
+order, and whether pages carry extractable text.
+
+For tables it checks association rather than presence. A table can carry every header cell
+the standard asks for and still tell a reader nothing, because what connects a header to
+the cells it governs is `/Scope`, or `/Headers` and `/ID` on anything complex. The script
+reports headers with no scope, two-axis tables with no `/Headers` associations, and rows
+holding fewer cells than the table has columns with no `/RowSpan` or `/ColSpan` declared.
+That last one matters most: undeclared merges make the reader fill columns left to right,
+so every cell after a merge is attributed to the wrong column, and the user is told a value
+belongs somewhere it does not.
 
 It cannot judge the things that decide whether the document actually works. Those are
 yours:
@@ -94,14 +103,20 @@ as an adjacent table (1.1.1).
 should be marked as artifacts so they are not read as content. Tagged decoration is a
 common reason a document reads as noise.
 
+The script reports the opposite case too: content that is neither tagged nor artifacted.
+Readers navigating the tag tree skip it, which is the right outcome for decoration and
+silent data loss for anything else, and nothing in the file says which it is. Look at what
+was skipped before deciding it does not matter.
+
 **Color and contrast.** PDF structure carries no color information the script can compare.
 Extract the colors and run `scripts/contrast.py` on the text and background pairs
 (1.4.3, 1.4.11). Also check for information carried by color alone, such as red for
 negative figures (1.4.1).
 
-**Table complexity.** Scope works for simple tables. Tables with merged cells or two levels
-of headers need `headers` and `id` associations, and the script cannot verify those are
-correct (1.3.1).
+**Table complexity.** The script finds missing associations. It cannot tell you whether the
+associations that exist are the right ones, so on a two-axis table check a few cells in the
+middle against the visual grid and confirm both headers are the ones a reader needs
+(1.3.1).
 
 **Lists.** A bulleted list tagged as a series of paragraphs reads as prose. Check the tag
 tree for L, LI, and LBody (1.3.1).
@@ -175,10 +190,12 @@ Read `../wcag-remediate/SKILL.md` first. PDF-specific notes:
   language, title, and DisplayDocTitle safely, but rebuilding a structure tree by script is
   fragile and usually produces a worse result than a re-export.
 - The safe scripted fixes are: set `/Lang`, set the document title and `DisplayDocTitle`,
-  set `/Tabs /S` on pages, and add `/Alt` to existing Figure elements where the correct
-  text is known.
+  set `/Tabs /S` on pages, add `/Alt` to existing Figure elements where the correct text is
+  known, and add `/Scope` to header cells whose axis is unambiguous from the table's shape.
 - The unsafe ones, which need the authoring tool: creating the structure tree, changing
-  reading order, adding heading structure, and building table header associations.
+  reading order, adding heading structure, and reconstructing merged-cell spans. Spans are
+  the line to hold, because a wrong `/RowSpan` silently reattributes data, and a table that
+  reads confidently and wrongly is worse than one that reads as unstructured.
 - After any change, re-run `pdf_audit.py` and re-read the document in order. A PDF edit
   that silently corrupts the tag tree looks fine in a viewer.
 - Never invent alternative text for an image whose content you cannot see. Report the gap
