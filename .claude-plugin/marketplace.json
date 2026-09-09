@@ -1,0 +1,39 @@
+{
+  "name": "wcag",
+  "owner": {
+    "name": "Caleb Hendren",
+    "url": "https://github.com/CalebHendren"
+  },
+  "description": "Accessibility auditing and remediation skills for web pages, PDFs, office documents, and mobile apps, measured against WCAG 2.2.",
+  "version": "0.1.0",
+  "plugins": [
+    {
+      "name": "wcag",
+      "source": "./",
+      "displayName": "WCAG Audit and Remediation",
+      "description": "Audits web pages, PDFs, documents, and mobile apps against WCAG 2.2 and, when asked, fixes what it finds. Audit mode never edits anything.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Caleb Hendren",
+        "url": "https://github.com/CalebHendren"
+      },
+      "homepage": "https://github.com/CalebHendren/wcag",
+      "repository": "https://github.com/CalebHendren/wcag",
+      "license": "MIT",
+      "category": "quality",
+      "keywords": [
+        "accessibility",
+        "wcag",
+        "a11y",
+        "audit",
+        "remediation",
+        "pdf-ua",
+        "section-508",
+        "ada",
+        "en-301-549",
+        "mobile-accessibility"
+      ],
+      "tags": ["accessibility", "wcag", "a11y", "compliance", "audit"]
+    }
+  ]
+}

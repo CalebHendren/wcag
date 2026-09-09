@@ -1,0 +1,19 @@
+{
+  "name": "wcag",
+  "interface": {
+    "displayName": "WCAG Audit and Remediation"
+  },
+  "plugins": [
+    {
+      "name": "wcag",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE"
+      },
+      "category": "Quality"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install optional dependencies
+        run: pip install pypdf
+
+      - name: Validate the plugin
+        run: python3 scripts/selfcheck.py
+
+      - name: Run the script tests
+        run: ./tests/run_tests.sh
+
+      - name: Check every script runs its help
+        run: |
+          for script in scripts/*.py; do
+            echo "--- $script"
+            python3 "$script" --help > /dev/null
+          done
