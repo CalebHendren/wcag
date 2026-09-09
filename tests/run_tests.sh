@@ -42,6 +42,26 @@ print(d["stats"]["tagged"] and d["stats"]["figures_without_alt"]==1 and "1.3.1" 
   check "$r" "True" "tagged PDF defects are detected"
   r=$(python3 scripts/pdf_audit.py tests/fixtures/tagged-with-defects.pdf --dump-tags | tr -d ' \n')
   check "$r" "DocumentH1PH3FigureTableTRTDTD" "structure tree is walked in document order"
+  r=$(python3 scripts/pdf_audit.py tests/fixtures/table-unassociated.pdf --json | python3 -c "
+import json,sys
+d = json.load(sys.stdin)
+issues = ' '.join(f['issue'] for f in d['findings'])
+print('carry /Scope' in issues and 'fewer cells' in issues)
+")
+  check "$r" "True" "unassociated table headers and undeclared spans are both reported"
+  r=$(python3 scripts/pdf_audit.py tests/fixtures/table-associated.pdf --json | python3 -c "
+import json,sys
+d = json.load(sys.stdin)
+issues = ' '.join(f['issue'] for f in d['findings'])
+print('carry /Scope' not in issues and 'fewer cells' not in issues)
+")
+  check "$r" "True" "a correctly scoped, regular table reports no table findings"
+  r=$(python3 scripts/pdf_audit.py tests/fixtures/table-associated.pdf --json | python3 -c "
+import json,sys
+s = json.load(sys.stdin)['stats']
+print(s['header_cells'] == 7 and s['header_cells_with_scope'] == 7)
+")
+  check "$r" "True" "scope is read from the /A attribute dictionary, not from element keys"
 else
   echo "  skip pypdf not installed"
 fi

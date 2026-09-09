@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+`pdf_audit.py` now checks table header association rather than header presence. The
+previous check asked only whether any `TH` existed, which passes exactly the tables that
+fail their readers: a real faculty timetable with all 37 header cells correctly typed, and
+not one of them carrying `/Scope`, came back clean.
+
+Three checks were added. Headers with no `/Scope` and no `/Headers` association anywhere.
+Two-axis tables with data cells carrying no `/Headers`. And rows holding fewer cells than
+the table has columns while no cell declares `/RowSpan` or `/ColSpan`, which is the one
+that produces wrong answers rather than missing ones, because an undeclared merge makes the
+reader fill columns left to right and shift every later cell into the wrong column.
+
+The underlying bug was that PDF table properties live in the element's `/A` attribute
+dictionary, not as direct keys, so a lookup for `node["/Scope"]` returns nothing on a
+correct file and a broken one alike. Added `merged_attributes()` to read `/A` properly,
+including the array form.
+
 ## 0.1.0
 
 First release.
