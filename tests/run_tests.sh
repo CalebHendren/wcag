@@ -42,6 +42,12 @@ print(d["stats"]["tagged"] and d["stats"]["figures_without_alt"]==1 and "1.3.1" 
   check "$r" "True" "tagged PDF defects are detected"
   r=$(python3 scripts/pdf_audit.py tests/fixtures/tagged-with-defects.pdf --dump-tags | tr -d ' \n')
   check "$r" "DocumentH1PH3FigureTableTRTDTD" "structure tree is walked in document order"
+  r=$(python3 scripts/pdf_audit.py tests/fixtures/tagged-with-defects.pdf --json | python3 -c "
+import json,sys
+print('untagged_content' in json.load(sys.stdin)['stats'])
+")
+  check "$r" "True" "untagged content is counted in the stats"
+
   r=$(python3 scripts/pdf_audit.py tests/fixtures/table-unassociated.pdf --json | python3 -c "
 import json,sys
 d = json.load(sys.stdin)

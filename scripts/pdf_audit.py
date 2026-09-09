@@ -110,6 +110,7 @@ class PdfAudit:
             "header_cells_with_scope": 0,
             "data_cells_with_headers": 0,
             "cells_with_spans": 0,
+            "untagged_content": 0,
             "links": 0,
             "form_fields": 0,
             "pages_without_text": [],
@@ -573,6 +574,76 @@ class PdfAudit:
                              "Confirm every row resolves to the full column count.",
                              confidence="needs-review", matterhorn="15-005")
 
+    def check_untagged_content(self):
+        """Find content that is neither tagged nor marked as an artifact.
+
+        PDF/UA asks every piece of page content to be one or the other. Content in
+        neither state is skipped by readers that navigate the tag tree, which looks
+        like the right outcome when the content is decorative and is silent data loss
+        when it is not. Either way it is a defect, because nothing declared the
+        intent.
+        """
+        if not self.stats["tagged"]:
+            return
+        referenced = set()
+        seen = set()
+
+        def walk(node, depth=0):
+            try:
+                node = node.get_object()
+            except Exception:
+                return
+            if not isinstance(node, dict) or id(node) in seen or depth > 60:
+                return
+            seen.add(id(node))
+            kids = node.get("/K")
+            if kids is None:
+                return
+            try:
+                kids = kids.get_object()
+            except Exception:
+                pass
+            for child in (kids if isinstance(kids, list) else [kids]):
+                if isinstance(child, int):
+                    referenced.add(child)
+                else:
+                    walk(child, depth + 1)
+
+        tree = self.catalog().get("/StructTreeRoot")
+        if tree is None:
+            return
+        walk(tree)
+
+        drawn, artifacts = set(), set()
+        for page in self.reader.pages:
+            try:
+                data = page.get_contents().get_data().decode("latin-1", "replace")
+            except Exception:
+                continue
+            drawn |= {int(n) for n in
+                      re.findall(r"<<\s*/MCID\s+(\d+)\s*>>\s*BDC", data)}
+            artifacts |= {int(m.group(1)) for m in re.finditer(
+                r"/Artifact\s*<<\s*/MCID\s+(\d+)\s*>>\s*BDC", data)}
+
+        orphans = sorted((drawn - referenced) - artifacts)
+        self.stats["untagged_content"] = len(orphans)
+        if not orphans:
+            return
+        listed = ", ".join(str(o) for o in orphans[:10])
+        more = f" and {len(orphans) - 10} more" if len(orphans) > 10 else ""
+        self.add("1.3.1", "Info and Relationships", "A", "medium",
+                 f"{self.path} (marked content {listed}{more})",
+                 f"{len(orphans)} piece(s) of page content are neither referenced by "
+                 "the structure tree nor marked as an artifact.",
+                 "Readers that navigate the tag tree skip this content entirely. That is "
+                 "the right outcome if it is decorative and silent data loss if it is "
+                 "not, and nothing in the file says which.",
+                 "Mark decorative items as artifacts in the authoring tool, and tag "
+                 "anything that carries information so it joins the structure tree.",
+                 "Re-run this check and confirm every drawn item is either tagged or "
+                 "artifacted.",
+                 confidence="needs-review", matterhorn="01-006")
+
     def check_text_layer(self):
         empty = []
         for index, page in enumerate(self.reader.pages, 1):
@@ -674,6 +745,7 @@ class PdfAudit:
         self.check_headings()
         self.collect_tables()
         self.check_tables()
+        self.check_untagged_content()
         self.check_text_layer()
         self.check_forms()
         if self.stats["tagged"]:
@@ -758,6 +830,9 @@ def main(argv=None):
         print(f"  data cells assoc.  {stats['data_cells_with_headers']} "
               f"of {stats['table_cells'] - stats['header_cells']} carry /Headers")
         print(f"  cells with spans   {stats['cells_with_spans']}")
+    if stats.get("untagged_content"):
+        print(f"  untagged content   {stats['untagged_content']} item(s) neither "
+              "tagged nor artifacted")
     print(f"  form fields        {stats['form_fields']}")
     if stats["pages_without_text"]:
         print(f"  pages with no text {len(stats['pages_without_text'])}")

@@ -103,6 +103,11 @@ as an adjacent table (1.1.1).
 should be marked as artifacts so they are not read as content. Tagged decoration is a
 common reason a document reads as noise.
 
+The script reports the opposite case too: content that is neither tagged nor artifacted.
+Readers navigating the tag tree skip it, which is the right outcome for decoration and
+silent data loss for anything else, and nothing in the file says which it is. Look at what
+was skipped before deciding it does not matter.
+
 **Color and contrast.** PDF structure carries no color information the script can compare.
 Extract the colors and run `scripts/contrast.py` on the text and background pairs
 (1.4.3, 1.4.11). Also check for information carried by color alone, such as red for
