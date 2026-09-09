@@ -48,6 +48,24 @@ print('untagged_content' in json.load(sys.stdin)['stats'])
 ")
   check "$r" "True" "untagged content is counted in the stats"
 
+  r=$(python3 scripts/pdf_audit.py tests/fixtures/text-hidden-in-artifacts.pdf --json | python3 -c "
+import json,sys
+d = json.load(sys.stdin)
+print(any('inside artifacts' in f['issue'] for f in d['findings']))
+")
+  check "$r" "True" "text hidden inside artifacts is reported"
+  r=$(python3 scripts/pdf_audit.py tests/fixtures/tagged-with-defects.pdf --json | python3 -c "
+import json,sys
+d = json.load(sys.stdin)
+print(any('inside artifacts' in f['issue'] for f in d['findings']))
+")
+  check "$r" "False" "a tagged file with nothing artifacted stays quiet"
+  r=$(python3 scripts/pdf_audit.py tests/fixtures/table-associated.pdf --json | python3 -c "
+import json,sys
+print(json.load(sys.stdin)['stats']['artifact_text_share'])
+")
+  check "$r" "0.0" "text outside all marked content is not counted as artifacted"
+
   r=$(python3 scripts/pdf_audit.py tests/fixtures/table-unassociated.pdf --json | python3 -c "
 import json,sys
 d = json.load(sys.stdin)

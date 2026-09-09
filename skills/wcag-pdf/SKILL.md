@@ -103,10 +103,16 @@ as an adjacent table (1.1.1).
 should be marked as artifacts so they are not read as content. Tagged decoration is a
 common reason a document reads as noise.
 
-The script reports the opposite case too: content that is neither tagged nor artifacted.
-Readers navigating the tag tree skip it, which is the right outcome for decoration and
-silent data loss for anything else, and nothing in the file says which it is. Look at what
-was skipped before deciding it does not matter.
+The script reports two related cases. Content that is neither tagged nor artifacted, which
+readers skip while nothing in the file says whether that was intended. And pages where more
+than a quarter of the visible text sits inside artifacts, which is a strong signal that an
+exporter hid real content: page numbers and running heads are a small share of a page, so a
+large one usually means labels or data were artifacted along with the decoration.
+
+Neither is a failure on its own, because only a person can say whether the skipped text
+mattered. Read what was skipped before deciding it did not. This is the failure that hides
+best: the tag tree looks complete, the checker is quiet, and the reader is missing the
+labels that say what everything means.
 
 **Color and contrast.** PDF structure carries no color information the script can compare.
 Extract the colors and run `scripts/contrast.py` on the text and background pairs

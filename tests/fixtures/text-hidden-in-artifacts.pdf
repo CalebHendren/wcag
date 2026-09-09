@@ -1,0 +1,63 @@
+%PDF-1.7
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 10 0 R /MarkInfo << /Marked true >> /Lang (en-US) >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Tabs /S /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 416 >>
+stream
+/P <</MCID 0>> BDC BT /F1 12 Tf 72 700 Td (Dilution worksheet) Tj ET EMC
+/P <</MCID 1>> BDC BT /F1 12 Tf 72 680 Td (0) Tj ET EMC
+/P <</MCID 2>> BDC BT /F1 12 Tf 72 660 Td (0) Tj ET EMC
+/Artifact BMC BT /F1 12 Tf 200 680 Td (Dilution Factor for tube A) Tj ET EMC
+/Artifact BMC BT /F1 12 Tf 200 660 Td (Total Dilution for tube B) Tj ET EMC
+/Artifact BMC BT /F1 12 Tf 200 640 Td (Plate count 12,756 colonies) Tj ET EMC
+
+endstream
+endobj
+10 0 obj
+<< /Type /StructTreeRoot /K [11 0 R] >>
+endobj
+11 0 obj
+<< /Type /StructElem /S /Document /P 10 0 R /K [12 0 R 13 0 R 14 0 R] >>
+endobj
+12 0 obj
+<< /Type /StructElem /S /H1 /P 11 0 R /K 0 >>
+endobj
+13 0 obj
+<< /Type /StructElem /S /P /P 11 0 R /K 1 >>
+endobj
+14 0 obj
+<< /Type /StructElem /S /P /P 11 0 R /K 2 >>
+endobj
+xref
+0 15
+0000000000 65535 f 
+0000000015 00000 n 
+0000000130 00000 n 
+0000000187 00000 n 
+0000000322 00000 n 
+0000000392 00000 n 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000859 00000 n 
+0000000915 00000 n 
+0000001004 00000 n 
+0000001066 00000 n 
+0000001127 00000 n 
+trailer
+<< /Size 15 /Root 1 0 R >>
+startxref
+1188
+%%EOF
