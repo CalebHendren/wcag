@@ -1,6 +1,6 @@
 ---
 name: wcag-report
-description: "Produce accessibility deliverables from audit findings: a VPAT or Accessibility Conformance Report (ACR), an accessibility statement, issue tickets for a tracker, an executive summary, or a remediation roadmap. Use when someone asks for a VPAT, an ACR, a Section 508 conformance report, an EN 301 549 report, an accessibility statement for a website, a procurement response about accessibility, or wants audit findings turned into Jira or GitHub issues. Load this after an audit when the output has to reach a specific audience or fill a specific template."
+description: "Turn audit findings into the deliverable someone asked for: a VPAT or Accessibility Conformance Report, an accessibility statement, issue tickets, an executive summary, or a remediation roadmap. Load when someone asks for a VPAT or ACR, a Section 508 or EN 301 549 conformance report, an accessibility statement, a procurement response about accessibility, or wants findings turned into Jira or GitHub issues."
 license: MIT
 allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 ---

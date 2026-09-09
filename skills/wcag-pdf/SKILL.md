@@ -1,6 +1,6 @@
 ---
 name: wcag-pdf
-description: "Audit or fix accessibility in PDF files against WCAG 2.2 and PDF/UA (ISO 14289). Use for any PDF: reports, forms, statements, scanned documents, brochures, invoices, policy documents, or a folder of them. Covers tagging, reading order, alternative text, headings, tables, form field labels, bookmarks, document language, and OCR of scans. Load this whenever someone mentions a PDF and accessibility, asks whether a document is screen-reader friendly, mentions tagged PDF, PDF/UA, Section 508 documents, remediation, Acrobat's accessibility checker, veraPDF, or the Matterhorn Protocol."
+description: "Audit or fix accessibility in PDF files against WCAG 2.2 and PDF/UA (ISO 14289): tagging, reading order, alt text, table header association, form labels, and scans needing OCR. Load whenever someone mentions a PDF and accessibility, asks whether a document is screen-reader friendly, or mentions tagged PDF, PDF/UA, Acrobat's accessibility checker, veraPDF, or the Matterhorn Protocol."
 license: MIT
 allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write, Edit
 ---
@@ -142,43 +142,24 @@ all. Check each field for:
 
 ## Standards beyond WCAG
 
-WCAG applies to PDF through the W3C PDF techniques (PDF1 through PDF23), which describe how
-to satisfy each criterion in this format. `references/pdf-techniques.md` maps the criteria
-to those techniques.
+WCAG applies to PDF through the W3C PDF techniques (PDF1 to PDF23);
+`references/pdf-techniques.md` maps criteria to what the file must contain. PDF/UA-1 (ISO
+14289-1) is the format's own standard, expressed by the Matterhorn Protocol as 31
+checkpoints and 136 failure conditions, 87 machine-checkable and 47 needing judgement;
+`references/matterhorn.md` covers the ones that matter in practice.
 
-PDF/UA-1 (ISO 14289-1) is the format-specific accessibility standard. The Matterhorn
-Protocol expresses it as 31 checkpoints and 136 failure conditions, of which 87 can be
-checked by software and 47 need human judgement. `references/matterhorn.md` covers the
-checkpoints that matter most in practice and which of them a person has to decide.
+The two overlap and neither contains the other. A PDF/UA-conforming file can still fail
+WCAG on contrast, and a WCAG-satisfying file can miss PDF/UA structural requirements. If a
+procurement asks for both, say which you tested.
 
-The two standards overlap but neither contains the other. A PDF/UA-conforming file can
-still fail WCAG on contrast, and a file that satisfies WCAG can miss PDF/UA structural
-requirements. If a procurement asks for both, say which you tested.
-
-Where a fuller check is available, recommend it and say what it adds:
-
-- **veraPDF** is the open-source PDF/UA validator, and it covers the machine-checkable
-  Matterhorn conditions properly.
-- **Acrobat's accessibility checker** is what most document owners have, and its report is
-  the vocabulary they will use.
-- **PAC** checks PDF/UA and shows a screen-reader preview of the reading order, which is
-  the fastest way for a person to see an order problem.
+Recommend a fuller check where one is available, and say what it adds. **veraPDF** is the
+open-source PDF/UA validator and covers the machine-checkable Matterhorn conditions
+properly. **Acrobat's accessibility checker** is what most document owners have, and its
+report is the vocabulary they will use. **PAC** shows a screen-reader preview of the
+reading order, which is the fastest way for a person to see an order problem.
 
 Recommending these is not an admission that the audit was thin. It is how a real
-accessibility team works, and the skill's value is in the judgement calls those tools do
-not make.
-
-
-Read `../wcag/SKILL.md` first if you have not. It sets the mode, the finding record, and
-the report shape.
-
-Audit is the default here as everywhere. If the user asked a question rather than for
-fixes, report and change nothing. This skill carries edit permissions because it also
-describes remediation, not because auditing may edit.
-
-PDF is the format where the gap between "looks fine" and "readable" is widest. A PDF that
-prints perfectly can be completely unreadable to a screen reader, and nothing on screen
-tells you which one you have. Everything below is about finding out.
+accessibility team works, and the skill's value is the judgement those tools do not make.
 
 ## When remediating
 

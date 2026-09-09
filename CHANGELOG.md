@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+Cut the token cost of loading the skills by about 16 percent, verified against the eval
+set rather than assumed: all four cases score identically to the previous iteration, 21 of
+21 assertions, so the reduction cost nothing in behaviour.
+
+Descriptions, which sit in context on every request whether or not a skill triggers, drop
+from ~1150 to ~840 tokens. The `Covers [internals]` lists went: they describe what a skill
+contains rather than what a user would type, so they cost context without helping the skill
+trigger. Trigger phrasings were kept in full.
+
+SKILL.md bodies drop from ~18950 to ~15980 tokens. The router stopped restating the
+severity rubric that `references/severity.md` owns and now carries only the principle that
+severity is not the conformance level. `wcag-pdf` stopped restating the Matterhorn
+checkpoints its own reference holds. The per-format checklists in `wcag-documents` moved to
+`references/per-format.md`, since someone auditing a Word file never needs the EPUB section;
+that skill's body is down from ~2420 to ~1550 tokens and the four checks that decide most
+outcomes stayed in the body.
+
+Nothing was removed from the mode contract, the honesty rules, or the finding record. Those
+are what the evals exercise.
+
+## Unreleased
+
 `pdf_audit.py` now checks table header association rather than header presence. The
 previous check asked only whether any `TH` existed, which passes exactly the tables that
 fail their readers: a real faculty timetable with all 37 header cells correctly typed, and
