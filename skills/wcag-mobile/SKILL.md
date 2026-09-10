@@ -1,6 +1,6 @@
 ---
 name: wcag-mobile
-description: "Audit or fix accessibility in mobile apps and mobile content against WCAG 2.2 and the W3C WCAG2Mobile guidance. Use for native iOS (UIKit or SwiftUI), native Android (Views or Compose), React Native, Flutter, hybrid and webview apps, responsive mobile web, and app store or in-app content. Covers VoiceOver and TalkBack, accessibility labels and traits, focus and swipe order, Dynamic Type and text scaling, touch target size, gestures and drag alternatives, orientation, motion actuation, and live announcements. Load this whenever someone mentions a mobile app, iOS, Android, VoiceOver, TalkBack, Swift, Kotlin, React Native, Flutter, accessibilityLabel, contentDescription, or asks whether an app works for blind or motor-impaired users."
+description: "Audit or fix accessibility in mobile apps against WCAG 2.2, applied to non-web software through WCAG2ICT and WCAG2Mobile. Covers native iOS (UIKit, SwiftUI), Android (Views, Compose), React Native, Flutter, and hybrid webview apps. Load whenever someone mentions a mobile app, iOS, Android, VoiceOver, TalkBack, Swift, Kotlin, Jetpack Compose, React Native, Flutter, accessibilityLabel, contentDescription, touch target size, or asks whether an app works for blind or motor-impaired users."
 license: MIT
 allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write, Edit
 ---
@@ -16,33 +16,25 @@ describes remediation, not because auditing may edit.
 
 ## What WCAG means on a mobile app
 
-WCAG was written for web content, and its normative conformance model is defined for web
-pages, so a native app cannot conform to WCAG in the specification's own terms. Two W3C
-notes bridge the gap, and they do different jobs:
+WCAG's conformance model is defined for web pages, so a native app cannot conform to WCAG
+in the specification's own terms. Two W3C notes bridge that, doing different jobs:
 
-**WCAG2ICT** (*Guidance on Applying WCAG 2 to Non-Web Information and Communications
-Technologies*) is a completed W3C Group Note from October 2024 covering WCAG 2.0, 2.1, and
-2.2. It supplies the substitution rules that make each criterion meaningful for non-web
-software, and it is the document regulations already reference. Anchor a claim to this one.
+**WCAG2ICT** is a completed Group Note from October 2024 covering WCAG 2.0, 2.1 and 2.2. It
+supplies the substitution rules that make each criterion meaningful for non-web software,
+and regulations already reference it. Anchor a claim here.
 
-**WCAG2Mobile** (*Guidance on Applying WCAG 2.2 to Mobile Applications*) is a narrower and
-more recent draft note, first published in May 2025. It gives the mobile-specific reading of
-the Level A and AA criteria, which is more concrete than WCAG2ICT for an app. Cite it as
-supporting interpretation.
+**WCAG2Mobile** is a narrower draft note from May 2025 giving the mobile-specific reading
+of the Level A and AA criteria. Cite it as supporting interpretation.
 
-`../../references/non-web.md` covers both, including the substitutions and the language for
-a conformance position. Read it before writing one.
+`../../references/non-web.md` covers both, the substitutions, and the language for a
+conformance position. Read it before writing one.
 
-Two practical consequences for a report:
-
-First, use WCAG criteria as the vocabulary, because that is what the obligation is written
-in, and say in the method section which interpretation you applied. Do not claim
-conformance in the WCAG sense for a native app without naming that caveat.
-
-Second, where a legal obligation covers native apps, it usually reaches them through a
-different route. ADA Title II names mobile applications directly. EN 301 549 covers native
-apps under its software clauses, chiefly Clause 11, which imports the WCAG criteria and
-adds requirements WCAG does not carry. `../../references/legal.md` has the mapping.
+Two consequences for a report. Use WCAG criteria as the vocabulary, because that is what
+the obligation is written in, and say in the method section which interpretation you
+applied. And where a law covers native apps it usually reaches them through another route:
+ADA Title II names mobile applications directly, and EN 301 549 covers them under its
+software clauses, chiefly Clause 11, which adds requirements WCAG does not carry.
+`../../references/legal.md` has the mapping.
 
 ## Establish what you can test
 
@@ -155,14 +147,11 @@ anything conveyed by color alone, such as a status dot or a chart series (1.4.1)
 
 ## Platform tooling
 
-Recommend these and say what each covers:
-
-- **iOS**: Accessibility Inspector in Xcode for the accessibility tree and audits, VoiceOver
-  on a device, and the Accessibility Audit API in XCUITest for regression coverage.
-- **Android**: Accessibility Scanner for on-device checks, TalkBack on a device, and the
-  Espresso accessibility checks for automated coverage in the test suite.
-- **React Native and Flutter**: the platform tools above still apply, since both render to
-  native accessibility APIs. Flutter also has `SemanticsDebugger`.
+Recommend these and say what each covers. **iOS**: Accessibility Inspector in Xcode,
+VoiceOver on a device, and the Accessibility Audit API in XCUITest for regression coverage.
+**Android**: Accessibility Scanner, TalkBack on a device, and Espresso accessibility checks
+in the test suite. **React Native and Flutter**: the platform tools above still apply since
+both render to native accessibility APIs, and Flutter adds `SemanticsDebugger`.
 
 None of these judge label quality, announcement order, or whether an alternative to a
 gesture exists. That is the audit.

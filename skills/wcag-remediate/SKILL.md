@@ -1,6 +1,6 @@
 ---
 name: wcag-remediate
-description: "Apply accessibility fixes safely after an audit, for web pages, PDFs, documents, or mobile apps. Use whenever the user asks to fix, remediate, correct, or resolve accessibility issues, make something WCAG or Section 508 compliant, add alt text, fix contrast, or apply the findings from an audit. Covers what order to fix in, which fixes are safe to make automatically and which need the content owner, how to avoid the accessibility anti-patterns that satisfy a checker while making things worse for real users, and how to verify and record every change. Load this before editing anything for accessibility reasons."
+description: "Apply accessibility fixes safely after an audit, for any format. Covers what order to fix in, which fixes are derivable and which need the content owner, the anti-patterns that satisfy a checker while making things worse, and how to verify and record each change. Load before editing anything for accessibility reasons: whenever the user asks to fix, remediate, correct, or resolve accessibility issues, make something WCAG or Section 508 compliant, add alt text, or apply an audit's findings."
 license: MIT
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write, WebFetch
 ---
@@ -148,36 +148,16 @@ know which change did it.
 ## Record what changed
 
 Produce a remediation record alongside the changes. It goes to whoever signs off, and it is
-what the next audit reads first.
+what the next audit reads first. Five sections:
 
-```markdown
-# Remediation record: [target]
+**Fixed**, as a table of finding, criterion, what changed, which files, and how you
+verified it. **Needs the content owner**, naming what is needed and from whom. **Needs a
+design decision**, with specific options and their measured values. **Not fixed, with
+reasons.** **Still unverified**, saying what could not be confirmed in this environment and
+what a person must check.
 
-## Fixed
-| Finding | SC | What changed | Files | Verified by |
-|---|---|---|---|---|
-| F-003 | 1.3.1 | Associated the visible label with the postcode field | AddressForm.tsx:88 | Re-ran axe; screen reader announces "Postcode, edit text" |
-
-## Needs the content owner
-| Finding | SC | What is needed | From whom |
-|---|---|---|---|
-| F-011 | 1.1.1 | Alt text for the six product photos | Marketing |
-
-## Needs a design decision
-| Finding | SC | Options | Measured |
-|---|---|---|---|
-| F-007 | 1.4.3 | Darken secondary text to #595959 or #4b5563 | 3.9:1 now, 7.0:1 and 8.1:1 respectively |
-
-## Not fixed, with reasons
-| Finding | SC | Why |
-|---|---|---|
-
-## Still unverified
-What could not be confirmed in this environment, and what a person needs to check.
-```
-
-The last two sections are the ones that make the record trustworthy. A remediation report
-with no unfixed items and no unverified items usually means nobody looked hard.
+The last two are what make the record trustworthy. A remediation report with no unfixed
+items and no unverified items usually means nobody looked hard.
 
 ## After remediation
 

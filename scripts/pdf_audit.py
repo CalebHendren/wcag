@@ -111,6 +111,7 @@ class PdfAudit:
             "data_cells_with_headers": 0,
             "cells_with_spans": 0,
             "untagged_content": 0,
+            "artifact_text_share": 0.0,
             "links": 0,
             "form_fields": 0,
             "pages_without_text": [],
@@ -644,6 +645,92 @@ class PdfAudit:
                  "artifacted.",
                  confidence="needs-review", matterhorn="01-006")
 
+    def check_artifacted_text(self):
+        """Flag pages where a large share of the visible text is inside artifacts.
+
+        Marking content as an artifact tells assistive technology to skip it, which
+        is right for page numbers and running heads and wrong for anything a reader
+        needs. No tool can judge which is which, but the proportion is a strong
+        signal: a page whose text is mostly artifacts is either heavily decorated or
+        has had real content hidden, and both are worth a human look. Exporters do
+        this to text boxes and drawing labels, so the content most often lost is
+        exactly the labels that say what a diagram or a blank means.
+        """
+        if not self.stats["tagged"]:
+            return
+        tagged_total = artifact_total = 0
+        flagged = []
+        for number, page in enumerate(self.reader.pages, 1):
+            try:
+                data = page.get_contents().get_data().decode("latin-1", "replace")
+            except Exception:
+                continue
+            tagged_chars, artifact_chars, samples = 0, 0, []
+            # Each entry is the kind of marked content we are inside: "tagged" for a
+            # BDC carrying an MCID, "artifact" for an Artifact marker, "other" for
+            # anything else. Text outside every marker is neither tagged nor
+            # artifacted; check_untagged_content already reports that case, and
+            # counting it here would flag any page that simply uses no markers.
+            stack = []
+            token = re.compile(
+                r"/(\w+)\s*<<[^>]*?/MCID\s+\d+[^>]*?>>\s*BDC|/(\w+)\s*<<[^>]*?>>\s*BDC|"
+                r"/(\w+)\s*BMC|\bEMC\b|"
+                r"\[((?:[^\]\\]|\\.)*)\]\s*TJ|\(((?:[^()\\]|\\.)*)\)\s*Tj")
+            for match in token.finditer(data):
+                piece = match.group(0)
+                if piece.endswith("BDC") and match.group(1):
+                    stack.append("artifact" if match.group(1) == "Artifact" else "tagged")
+                elif piece.endswith("BDC"):
+                    stack.append("artifact" if match.group(2) == "Artifact" else "other")
+                elif piece.endswith("BMC"):
+                    stack.append("artifact" if match.group(3) == "Artifact" else "other")
+                elif piece == "EMC":
+                    if stack:
+                        stack.pop()
+                else:
+                    raw = match.group(5)
+                    if raw is None:
+                        raw = "".join(re.findall(r"\(((?:[^()\\]|\\.)*)\)",
+                                                match.group(4) or ""))
+                    text = re.sub(r"\\([()\\])", r"\1", raw).strip()
+                    if not text or not stack:
+                        continue
+                    if stack[-1] == "tagged":
+                        tagged_chars += len(text)
+                    elif stack[-1] == "artifact":
+                        artifact_chars += len(text)
+                        if len(samples) < 6:
+                            samples.append(text[:24])
+            tagged_total += tagged_chars
+            artifact_total += artifact_chars
+            visible = tagged_chars + artifact_chars
+            if visible and artifact_chars > 60 and artifact_chars / visible > 0.25:
+                flagged.append((number, round(100 * artifact_chars / visible), samples))
+
+        visible_total = tagged_total + artifact_total
+        if visible_total:
+            self.stats["artifact_text_share"] = round(
+                100 * artifact_total / visible_total, 1)
+        if not flagged:
+            return
+        pages = ", ".join(f"page {n} ({pct}%)" for n, pct, _ in flagged[:8])
+        more = f" and {len(flagged) - 8} more" if len(flagged) > 8 else ""
+        sample = "; ".join(flagged[0][2][:5])
+        self.add("1.3.1", "Info and Relationships", "A", "high",
+                 f"{self.path} ({pages}{more})",
+                 f"{len(flagged)} page(s) carry more than a quarter of their visible "
+                 "text inside artifacts, which assistive technology skips. On "
+                 f"page {flagged[0][0]} the skipped text includes: {sample}.",
+                 "Anything a reader needs that is marked as an artifact is invisible to "
+                 "them, and no error is raised. If those strings carry data or label "
+                 "something, the document cannot be used by a screen reader for its "
+                 "purpose, however well the rest of it is tagged.",
+                 "Read the skipped text. Artifact only what is genuinely decorative, "
+                 "and tag the rest as content in the authoring tool.",
+                 "Confirm every string a reader needs is reachable through the "
+                 "structure tree.",
+                 confidence="needs-review", matterhorn="01-003")
+
     def check_text_layer(self):
         empty = []
         for index, page in enumerate(self.reader.pages, 1):
@@ -746,6 +833,7 @@ class PdfAudit:
         self.collect_tables()
         self.check_tables()
         self.check_untagged_content()
+        self.check_artifacted_text()
         self.check_text_layer()
         self.check_forms()
         if self.stats["tagged"]:
@@ -830,6 +918,8 @@ def main(argv=None):
         print(f"  data cells assoc.  {stats['data_cells_with_headers']} "
               f"of {stats['table_cells'] - stats['header_cells']} carry /Headers")
         print(f"  cells with spans   {stats['cells_with_spans']}")
+    if stats.get("artifact_text_share"):
+        print(f"  text in artifacts  {stats['artifact_text_share']}% of visible text")
     if stats.get("untagged_content"):
         print(f"  untagged content   {stats['untagged_content']} item(s) neither "
               "tagged nor artifacted")

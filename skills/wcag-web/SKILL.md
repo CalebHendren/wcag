@@ -1,6 +1,6 @@
 ---
 name: wcag-web
-description: "Audit or fix accessibility on web pages, web apps, and UI components against WCAG 2.2. Use for any HTML, CSS, JavaScript, React, Vue, Svelte, Angular, or design-system target: a live URL, a component in source, a template, a Storybook story, or an HTML email. Covers keyboard operation, focus management, ARIA, forms and error handling, contrast, reflow and zoom, target size, and the criteria new in WCAG 2.2. Load this whenever someone asks whether a page or component is accessible, mentions axe, Lighthouse, screen readers, alt text, ARIA, focus traps, color contrast, or asks to make a page WCAG or Section 508 compliant."
+description: "Audit or fix accessibility on web pages, web apps, and UI components against WCAG 2.2, from a live URL or from source in any framework. Covers keyboard operation, focus management, ARIA, forms and errors, contrast, reflow, and target size. Load whenever someone asks whether a page or component is accessible, mentions axe, Lighthouse, screen readers, alt text, ARIA, focus traps, or color contrast, or asks to make a page WCAG or Section 508 compliant."
 license: MIT
 allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write, Edit
 ---
@@ -18,27 +18,26 @@ This file covers what is specific to the web.
 
 ## Work out what you can actually test
 
-Your leverage depends entirely on what you can reach. Establish this before promising
-anything, because it decides which criteria you can honestly assess.
+Your leverage depends on what you can reach, and it decides which criteria you can honestly
+assess.
 
-**A live URL with a browser available** is the strongest position. Run
-`scripts/axe_scan.py URL --json`, then test by hand what it cannot see. If Playwright is
-missing, try installing it once (`pip install playwright && playwright install chromium`);
-if that fails, drop to the source-code path and say so in the report.
+**A live URL with a browser** is the strongest position. Run `scripts/axe_scan.py URL
+--json`, then test by hand what it cannot see. If Playwright is missing, try installing it
+once (`pip install playwright && playwright install chromium`); if that fails, drop to the
+source path and say so in the report.
 
-**Source code only** means no computed styles, no rendered accessibility tree, and no
-runtime behavior. Run `scripts/html_audit.py` over the templates, read the components, and
-mark contrast, reflow, focus visibility, and target size as not tested unless you can
-derive them from the stylesheets with confidence.
+**Source only** means no computed styles, no rendered accessibility tree, no runtime
+behaviour. Run `scripts/html_audit.py` over the templates, read the components, and mark
+contrast, reflow, focus visibility and target size not tested unless the stylesheets settle
+them.
 
-**A single pasted snippet** supports structural findings only. Say that in one line rather
-than implying the page was reviewed.
+**A pasted snippet** supports structural findings only. Say so in one line rather than
+implying the page was reviewed.
 
-For a framework codebase, the accessible output is generated, so read the components that
-produce it rather than the built HTML: the button primitive, the modal, the form field
-wrapper, the data table, the menu. One fix in a design-system primitive removes the same
-finding from every page, which is why component-level auditing beats page-level auditing on
-anything with a component library.
+For a framework codebase the output is generated, so read the components that produce it:
+the button primitive, the modal, the form field wrapper, the data table, the menu. One fix
+in a design-system primitive removes the same finding from every page, which is why
+component-level auditing beats page-level auditing on anything with a component library.
 
 ## Run the tools first
 
@@ -157,30 +156,19 @@ Read `references/frameworks.md` for the details. The recurring ones:
 ## ARIA, used sparingly
 
 The first rule of ARIA is not to use it. A native `<button>`, `<a href>`, `<input>`,
-`<select>`, `<details>`, or `<dialog>` arrives with role, name computation, keyboard
-behavior, focus handling, and state already correct. Every ARIA attribute is a promise you
-then have to keep in JavaScript, and a half-kept promise is worse than no promise: a
-`role="checkbox"` that never updates `aria-checked` tells the user the wrong state rather
-than no state.
+`<select>`, `<details>` or `<dialog>` arrives with role, name computation, keyboard
+behaviour, focus and state already correct. Every ARIA attribute is a promise you then have
+to keep in JavaScript, and a half-kept promise is worse than none: a `role="checkbox"` that
+never updates `aria-checked` reports the wrong state rather than no state.
 
 When a custom widget is unavoidable, implement the full keyboard interaction pattern, not
-just the roles. `references/aria-patterns.md` has the interaction contracts for the widgets
-that come up most: dialog, disclosure, tabs, combobox, menu, tooltip, and data grid.
+just the roles. `references/aria-patterns.md` has the interaction contracts for dialog,
+disclosure, tabs, combobox, menu, tooltip and data grid.
 
-Report as findings: ARIA references pointing at ids that do not exist; `aria-hidden="true"`
-on something still focusable; roles applied without their required properties; an
-`aria-label` that contradicts the visible text (2.5.3); and `role="presentation"` on
+Report as findings: ARIA references pointing at ids that do not exist, `aria-hidden="true"`
+on something still focusable, roles applied without their required properties, an
+`aria-label` that contradicts the visible text (2.5.3), and `role="presentation"` on
 something interactive.
-
-
-Read `../wcag/SKILL.md` first if you have not. It sets the mode, the finding record, and
-the report shape.
-
-Audit is the default here as everywhere. If the user asked a question rather than for
-fixes, report and change nothing. This skill carries edit permissions because it also
-describes remediation, not because auditing may edit.
-
-This file covers what is specific to the web.
 
 ## When remediating
 
