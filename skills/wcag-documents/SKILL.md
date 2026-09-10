@@ -1,6 +1,6 @@
 ---
 name: wcag-documents
-description: "Audit or fix accessibility in Word, PowerPoint, Excel, Google Workspace, OpenDocument, EPUB, and Markdown files against WCAG 2.2, including the export settings that decide whether the resulting PDF is accessible. Load whenever someone asks about an accessible Word document, slide deck, spreadsheet or ebook, mentions heading styles, alt text or table headers in a document, or wants a document prepared so its PDF export works."
+description: "Audit or fix accessibility in Word, PowerPoint, Excel, Google Workspace, OpenDocument, EPUB, and Markdown files against WCAG 2.2, working on the file directly or through the application, including Microsoft Office's own accessibility checker and the export settings that decide whether the resulting PDF is accessible. Load whenever someone asks about an accessible Word document, slide deck, spreadsheet or ebook, mentions heading styles, alt text or table headers in a document, mentions the accessibility checker in Office, or wants a document prepared so its PDF export works."
 license: MIT
 allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write, Edit
 ---
@@ -28,10 +28,38 @@ Fixing the source is cheaper, it survives reissue, and the accessible PDF falls 
 correct export. When someone asks for PDF remediation, ask where the source is before
 anything else. `../wcag-pdf/SKILL.md` covers the case where the source is genuinely gone.
 
-## Reading the files
+## Start with the two tool passes
+
+**The script**, which needs no Office installation and works anywhere Python does. It reads
+the structure that decides whether the document works, maps what it finds to criteria, and
+marks each finding with who can close it:
+
+```bash
+python3 scripts/office_audit.py report.docx
+python3 scripts/office_audit.py deck.pptx --json > findings.json
+python3 scripts/office_audit.py report.docx --dump-outline   # the heading outline
+```
+
+It reports headings that are only bold text, tables with no header row, images with no
+alternative text or with a file name in place of one, links reading "click here", missing
+document language and title, slides with no title, content in floating boxes, merged cells,
+and default sheet names. It refuses to guess at the rest, and lists what a person still has
+to judge.
+
+**The application's own checker**, where you can reach it. Review, then Check Accessibility,
+in Word, PowerPoint, and Excel. It sees the document the way the application does, and its
+vocabulary of errors, warnings, and tips is the one the document owner already knows.
+`../../references/builtin-checkers.md` covers what it catches, the much larger set it does
+not, and why "Accessibility: Good to go" is not a conformance claim.
+
+Run both where you can, and say in the report which one produced each finding. Where you
+could not run the built-in checker, say that too: a reader who uses Word will assume it was
+run.
+
+## Reading the files by hand
 
 Office formats are ZIP archives of XML, so they can be inspected without the authoring
-application:
+application when you need something the script does not report:
 
 ```bash
 unzip -o report.docx -d /tmp/docx && ls /tmp/docx/word/
@@ -95,27 +123,47 @@ The export step destroys accessibility more often than the authoring does. Check
   tagged, has a language, has a title, and has the headings you expect. An export that
   silently dropped tagging is common enough to be worth checking every time.
 
-
-Read `../wcag/SKILL.md` first if you have not. It sets the mode, the finding record, and
-the report shape.
-
-Audit is the default here as everywhere. If the user asked a question rather than for
-fixes, report and change nothing. This skill carries edit permissions because it also
-describes remediation, not because auditing may edit.
-
 ## When remediating
 
-Read `../wcag-remediate/SKILL.md` first. Document-specific notes:
+Read `../wcag-remediate/SKILL.md` first for the rules, then
+`references/office-remediation.md` for each fix twice over: the path through the
+application's menus, and the change to make in the file when you cannot open the
+application.
+
+Four fixes are derivable, so a script applies them to a copy and leaves the original alone:
+
+```bash
+python3 scripts/office_remediate.py report.docx \
+    --title auto --language en-GB --table-headers --alt-text alt.json
+python3 scripts/office_audit.py report-remediated.docx      # always re-audit
+```
+
+Document-specific notes:
 
 - Fix the template, not just this document. An organization with one bad Word template
   produces a bad document every week.
 - Applying a heading style changes the visual formatting. Check with the document owner
   before restyling a document that is already circulated, or adjust the style definition so
   the appearance is preserved.
-- Never write alt text for an image whose content you cannot determine. Report the gap and
-  name what the author must supply.
-- Where you can edit the file programmatically, `python-docx` and `python-pptx` set alt
-  text and read structure reliably. Both preserve the rest of the file, but work on a copy
-  and diff the result.
+- Never write alt text for an image whose content you cannot determine. If you can view the
+  image, draft it and mark the finding needs-review rather than closed. If you cannot,
+  report the gap and name what the author must supply.
+- `python-docx` and `python-pptx` preserve what they do not model, so they round trip
+  safely. `openpyxl` does not: it drops charts and images when it saves a workbook, so use
+  it to read or to write a new file, not to resave an existing one.
+- Work on a copy, always, and compare the result against the original on what should not
+  have changed.
 - Re-export and re-check after the fixes, since the export is where the work either
   survives or does not.
+
+## When the document cannot be repaired
+
+Some documents will not take the fix. A report whose headings are all direct formatting
+over Normal, a deck built entirely from floating text boxes, a legacy binary file, a
+package that is damaged. `office_audit.py` marks those findings `agent_fix: recreate`, and
+`office_remediate.py` exits 1 when a fix it was asked for could not be applied.
+
+That is the point to stop rather than to try harder. Say what failed, say what is still
+fixed, and offer to rebuild the document instead.
+`../wcag-recreate/SKILL.md` covers the rebuild: what must come across exactly, what a
+rebuild always loses, and the parity check that proves the new file says the same thing.

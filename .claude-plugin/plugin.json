@@ -1,8 +1,8 @@
 {
   "name": "wcag",
   "displayName": "WCAG Audit and Remediation",
-  "version": "0.1.0",
-  "description": "Audits web pages, PDFs, office documents, and mobile apps against WCAG 2.2 and, when asked, fixes what it finds. Audit mode reads and reports without changing anything; remediation is a separate, explicit request.",
+  "version": "0.2.0",
+  "description": "Audits web pages, PDFs, office documents, and mobile apps against WCAG 2.2 and, when asked, fixes what it finds or rebuilds what cannot be fixed. Works in source code and directly in Word, PowerPoint, and Excel. Audit mode reads and reports without changing anything.",
   "author": {
     "name": "Caleb Hendren",
     "url": "https://github.com/CalebHendren"
@@ -11,16 +11,21 @@
   "repository": "https://github.com/CalebHendren/wcag",
   "license": "MIT",
   "keywords": [
-    "accessibility",
-    "wcag",
     "a11y",
-    "audit",
-    "remediation",
-    "pdf-ua",
-    "section-508",
+    "accessibility",
     "ada",
+    "audit",
+    "document-remediation",
+    "docx",
     "en-301-549",
-    "mobile-accessibility"
+    "mobile-accessibility",
+    "office",
+    "pdf-ua",
+    "pptx",
+    "remediation",
+    "section-508",
+    "wcag",
+    "xlsx"
   ],
   "skills": "./skills/",
   "commands": "./commands/"

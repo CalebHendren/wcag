@@ -101,6 +101,88 @@ print(all(m.criterion_from_tags(t) == w for t, w in cases))
 ")
 check "$r" "True" "axe tags map to criterion numbers, including two-digit ones"
 
+echo "office_audit.py"
+for clean in report-clean.docx deck-clean.pptx workbook-clean.xlsx; do
+  r=$(python3 scripts/office_audit.py "tests/fixtures/office/$clean" --json |
+      python3 -c 'import json,sys;print(len(json.load(sys.stdin)["findings"]))')
+  check "$r" "0" "$clean produces no false positives"
+done
+r=$(python3 scripts/office_audit.py tests/fixtures/office/report-defects.docx --json |
+  python3 -c '
+import json,sys
+found = {f["sc"] for f in json.load(sys.stdin)["findings"]}
+print({"1.1.1", "1.3.1", "1.3.2", "2.4.2", "2.4.4", "3.1.1"}.issubset(found))')
+check "$r" "True" "the defective Word file covers the expected criteria"
+r=$(python3 scripts/office_audit.py tests/fixtures/office/deck-defects.pptx --json |
+  python3 -c '
+import json,sys
+d = json.load(sys.stdin)
+issues = " ".join(f["issue"] for f in d["findings"])
+print("slide(s) have no title" in issues and "free-floating boxes" in issues)')
+check "$r" "True" "an untitled slide and loose text boxes are both reported"
+r=$(python3 scripts/office_audit.py tests/fixtures/office/deck-clean.pptx --json |
+  python3 -c '
+import json,sys
+print(json.load(sys.stdin)["stats"]["images_and_shapes"])')
+check "$r" "1" "alt text is asked of pictures, not of every text box"
+r=$(python3 scripts/office_audit.py tests/fixtures/office/report-defects.docx --json |
+  python3 -c '
+import json,sys
+values = {f["agent_fix"] for f in json.load(sys.stdin)["findings"]}
+print(values <= {"direct", "app", "recreate", "owner", "design"} and "direct" in values)')
+check "$r" "True" "every finding says who can close it"
+printf '\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1padding' > /tmp/wcag-test-encrypted.docx
+python3 scripts/office_audit.py /tmp/wcag-test-encrypted.docx --json > /dev/null 2>&1
+check "$?" "2" "an encrypted file exits 2 rather than reporting a clean document"
+rm -f /tmp/wcag-test-encrypted.docx
+
+echo "office_remediate.py"
+rm -rf /tmp/wcag-test-office && mkdir -p /tmp/wcag-test-office
+cp tests/fixtures/office/report-defects.docx /tmp/wcag-test-office/in.docx
+echo '{"chart1.png": "Column chart. Uptake rose from 40 to 62 percent."}' \
+  > /tmp/wcag-test-office/alt.json
+python3 scripts/office_remediate.py /tmp/wcag-test-office/in.docx \
+  --title auto --language en-GB --table-headers \
+  --alt-text /tmp/wcag-test-office/alt.json > /dev/null
+check "$?" "0" "a pass whose fixes all apply exits 0"
+r=$(python3 -c '
+import hashlib
+print(hashlib.sha256(open("/tmp/wcag-test-office/in.docx","rb").read()).hexdigest()
+      == hashlib.sha256(open("tests/fixtures/office/report-defects.docx","rb").read()
+      ).hexdigest())')
+check "$r" "True" "the original file is not modified"
+r=$(python3 scripts/office_audit.py /tmp/wcag-test-office/in-remediated.docx --json |
+  python3 -c '
+import json,sys
+d = json.load(sys.stdin)
+s = d["stats"]
+issues = " ".join(f["issue"] for f in d["findings"])
+print(s["language"] == "en-GB" and s["title"] == "Quarterly Accessibility Report"
+      and s["without_alt_text"] == 0 and "declare no header row" not in issues)')
+check "$r" "True" "the four derivable fixes land and survive a re-audit"
+r=$(python3 -c '
+import zipfile, xml.etree.ElementTree as ET
+a = zipfile.ZipFile("tests/fixtures/office/report-defects.docx")
+b = zipfile.ZipFile("/tmp/wcag-test-office/in-remediated.docx")
+changed = [n for n in a.namelist() if a.read(n) != b.read(n)]
+for n in b.namelist():
+    ET.fromstring(b.read(n))
+print(a.namelist() == b.namelist() and sorted(changed) == [
+    "docProps/core.xml", "word/document.xml", "word/styles.xml"])')
+check "$r" "True" "only the parts that carry a fix are rewritten, and all stay well formed"
+echo '{"no-such-shape": "text"}' > /tmp/wcag-test-office/missing.json
+python3 scripts/office_remediate.py /tmp/wcag-test-office/in.docx \
+  --alt-text /tmp/wcag-test-office/missing.json --dry-run > /dev/null
+check "$?" "1" "a failed fix exits 1, which is the signal to consider recreating"
+python3 scripts/office_remediate.py tests/fixtures/office/workbook-defects.xlsx \
+  --language en-GB --dry-run > /dev/null
+check "$?" "1" "a fix the format cannot carry is reported as failed, not as applied"
+rm -rf /tmp/wcag-test-office
+
+echo "build_sc_index.py"
+python3 scripts/build_sc_index.py --check > /dev/null
+check "$?" "0" "the criteria index matches its generator"
+
 echo "report.py"
 python3 scripts/html_audit.py tests/fixtures/failing-page.html --json > /tmp/wcag-test-findings.json
 r=$(python3 scripts/report.py /tmp/wcag-test-findings.json --title Test --level AA | grep -c 'Not tested')
@@ -109,6 +191,13 @@ r=$(python3 scripts/report.py /tmp/wcag-test-findings.json --title Test --level 
 check "$([ "$r" -eq 1 ] && echo True || echo False)" "True" "conformance position is stated once"
 r=$(python3 scripts/report.py /tmp/wcag-test-findings.json --format vpat --title Test | grep -c 'Not Evaluated')
 check "$([ "$r" -gt 0 ] && echo True || echo False)" "True" "VPAT marks unevaluated rows"
+python3 scripts/office_audit.py tests/fixtures/office/report-defects.docx --json \
+  > /tmp/wcag-test-office-findings.json
+r=$(python3 scripts/report.py /tmp/wcag-test-office-findings.json --title Test --level AA |
+  grep -c 'What an agent cannot fix')
+check "$([ "$r" -eq 1 ] && echo True || echo False)" "True" \
+  "the report says which findings an agent cannot close"
+rm -f /tmp/wcag-test-office-findings.json
 
 echo "selfcheck.py"
 python3 scripts/selfcheck.py --quiet && echo "  ok   repository self-check"

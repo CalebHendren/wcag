@@ -3,7 +3,16 @@
 Content must be robust enough to be interpreted reliably by a wide variety of user agents,
 including assistive technologies. Three criteria, one of which was removed in WCAG 2.2.
 
-## 4.1.1 Parsing (removed in WCAG 2.2)
+## Contents
+
+- [Guideline 4.1 Compatible](#guideline-41-compatible)
+
+## Guideline 4.1 Compatible
+
+Maximize compatibility with current and future user agents, including assistive
+technologies.
+
+### 4.1.1 Parsing (removed in WCAG 2.2)
 
 This criterion was obsoleted and removed in WCAG 2.2, and it is deprecated in WCAG 2.1. The
 problems it addressed, such as duplicate `id` values and unclosed tags, are now handled by
@@ -16,7 +25,7 @@ breaks a label association or an `aria-labelledby` reference, report it under 1.
 Note that an audit against WCAG 2.0 or 2.1 for a legal regime that cites those versions may
 still need to address it. Say which version you are testing against.
 
-## 4.1.2 Name, Role, Value (A, 2.0)
+### 4.1.2 Name, Role, Value (A, 2.0)
 
 Intent: for every user interface component, the name and role are programmatically
 determinable; states, properties, and values that can be set by the user can be set
@@ -44,7 +53,7 @@ The reliable rule: use the native element when one exists. A `<button>` carries 
 computation, keyboard behavior, and focus for free. Every ARIA attribute you add is a
 promise you then have to keep in JavaScript.
 
-## 4.1.3 Status Messages (AA, 2.1)
+### 4.1.3 Status Messages (AA, 2.1)
 
 Intent: status messages can be programmatically determined through role or properties, so
 assistive technology can announce them without the message receiving focus.
