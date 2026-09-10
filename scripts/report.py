@@ -218,6 +218,49 @@ def criteria_status(findings, level, passed, not_applicable=frozenset()):
     return rows
 
 
+AGENT_FIX_LABELS = {
+    "direct": "an agent can apply this, and the correct value is derivable",
+    "app": "needs the authoring application",
+    "recreate": "the file cannot carry this fix, so the document has to be rebuilt",
+    "owner": "needs content only the author has",
+    "design": "needs a design decision",
+}
+
+AGENT_FIX_ORDER = ["recreate", "app", "owner", "design"]
+
+
+def agent_fix_section(findings):
+    """The findings nobody should expect an agent to close.
+
+    Written even when it is empty, because a reader deciding whether to book a
+    person's time needs that answer either way.
+    """
+    out = ["## What an agent cannot fix", ""]
+    grouped = {}
+    for finding in findings:
+        value = finding.get("agent_fix")
+        if value and value != "direct":
+            grouped.setdefault(value, []).append(finding)
+    if not any(f.get("agent_fix") for f in findings):
+        out += ["The findings above do not record who can close them, so this report "
+                "cannot say. See references/desktop-agents.md.", ""]
+        return out
+    if not grouped:
+        out += ["None. Every finding above can be applied directly, and the correct "
+                "value for each is derivable from the content.", ""]
+        return out
+    for key in AGENT_FIX_ORDER:
+        entries = grouped.get(key)
+        if not entries:
+            continue
+        out += [f"### {AGENT_FIX_LABELS[key].capitalize()}", ""]
+        for finding in entries:
+            out.append(f"- **{finding['id']}** {finding.get('sc')} at "
+                       f"`{finding.get('location')}`. {finding.get('fix')}")
+        out.append("")
+    return out
+
+
 def markdown(findings, sources, args, passed, not_applicable=frozenset()):
     today = datetime.date.today().isoformat()
     counts = Counter(f.get("severity", "medium") for f in findings)
@@ -290,8 +333,12 @@ def markdown(findings, sources, args, passed, not_applicable=frozenset()):
             out += [f"Fix: {finding['fix']}", ""]
         if finding.get("verification"):
             out += [f"Verify: {finding['verification']}", ""]
+        if finding.get("agent_fix"):
+            out += [f"Who can close it: {AGENT_FIX_LABELS.get(finding['agent_fix'], finding['agent_fix'])}", ""]
         if finding.get("confidence") == "needs-review":
             out += ["This finding needs a person to confirm it.", ""]
+
+    out += agent_fix_section(findings)
 
     out += ["## Criteria assessed", "",
             f"| SC | Title | Level | Since | Status |", "|---|---|---|---|---|"]

@@ -1,5 +1,5 @@
 ---
-description: WCAG accessibility auditing and remediation rules
+description: WCAG accessibility auditing, remediation, and recreation rules
 alwaysApply: false
 globs:
   - "**/*.html"
@@ -13,12 +13,18 @@ globs:
   - "**/*.pdf"
   - "**/*.docx"
   - "**/*.pptx"
+  - "**/*.xlsx"
+  - "**/*.doc"
+  - "**/*.ppt"
+  - "**/*.xls"
+  - "**/*.odt"
+  - "**/*.epub"
 ---
 
 # WCAG accessibility rules
 
-This project has the `wcag` skills installed. They cover auditing and remediating
-accessibility against WCAG 2.2 for web pages, PDFs, office documents, and mobile apps.
+This project has the `wcag` skills installed. They cover auditing, remediating, and
+rebuilding accessibility against WCAG 2.2 for web pages, PDFs, office documents, and mobile apps.
 
 Load `skills/wcag/SKILL.md` whenever a task involves accessibility, a11y, WCAG, Section
 508, the ADA, the European Accessibility Act, EN 301 549, a VPAT, screen readers, alt text,

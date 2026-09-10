@@ -1,6 +1,6 @@
 ---
 name: wcag
-description: "Audit or fix accessibility against WCAG 2.2 for web pages, PDFs, Office documents, and mobile apps. Start here for any accessibility work: it sets audit mode (read-only, the default) or remediation mode (edits only when asked), routes to the right format skill, and defines the finding record every wcag-* skill shares. Load whenever the user mentions accessibility, a11y, WCAG, Section 508, the ADA, the European Accessibility Act, EN 301 549, a VPAT, screen readers, alt text, color contrast, or keyboard navigation, or asks whether something works for people with disabilities, even without saying WCAG."
+description: "Audit, fix, or rebuild accessibility against WCAG 2.2 for web pages, PDFs, Office documents, and mobile apps. Start here for any accessibility work: it sets audit mode (read-only, the default), remediation mode (edits the file only when asked), or recreate mode (rebuilds a document that cannot be repaired), routes to the right format skill, and defines the finding record every wcag-* skill shares. Works for an agent editing source code and for one working directly in Word, PowerPoint, Excel, or a PDF on someone's desk. Load whenever the user mentions accessibility, a11y, WCAG, Section 508, the ADA, the European Accessibility Act, EN 301 549, a VPAT, screen readers, alt text, color contrast, or keyboard navigation, or asks whether something works for people with disabilities, even without saying WCAG."
 license: MIT
 allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 ---
@@ -20,10 +20,18 @@ Decide the mode from what was actually asked, and say which one you are in befor
 only if the user wants it on disk. Change nothing else. Audit words: check, review, audit,
 assess, is this compliant, will this pass, what's wrong with, how accessible is.
 
-**Remediation needs an explicit request.** Remediation words: fix, remediate, make it
-compliant, correct these, apply the fixes, add the alt text. Read
-`../wcag-remediate/SKILL.md` before touching anything, because it carries the ordering,
-safety and verification rules that stop you breaking what you are repairing.
+**Remediation needs an explicit request.** It repairs the file you were given.
+Remediation words: fix, remediate, make it compliant, correct these, apply the fixes, add
+the alt text. Read `../wcag-remediate/SKILL.md` before touching anything, because it
+carries the ordering, safety and verification rules that stop you breaking what you are
+repairing.
+
+**Recreation builds a new file**, when the one in front of you cannot carry the fix.
+Recreate words: rebuild, recreate, redo it properly, start again, make me a clean version.
+Read `../wcag-recreate/SKILL.md`. Enter it when the user asks, when an audit found the file
+unrepairable, or when a remediation pass failed and the user agreed to the rebuild. Never
+enter it silently in place of a repair: a rebuild loses things a repair does not, and the
+person has to know before it happens.
 
 Ambiguous ("sort out the accessibility on this page")? Audit first, then offer the fixes.
 An audit costs the user nothing and lets them decide. Never read permission to edit out of
@@ -32,6 +40,26 @@ silence.
 Say the mode in one line, so a misread is cheap to correct:
 
 > Running an audit of `report.pdf` against WCAG 2.2 Level AA. No changes to the file.
+
+## Establish what you can operate
+
+What you can find and what you can fix both depend on what this environment gives you, and
+the answer differs sharply between an agent editing source code and one working on a
+person's files in Word, PowerPoint, Excel, or Acrobat.
+
+Check before promising anything: whether you can read and write the file, whether
+`python-docx`, `python-pptx`, or `openpyxl` are installed, whether a converter such as
+LibreOffice is available, whether you can drive the authoring application itself, and
+whether a connector reaches files that live in Google Workspace or SharePoint rather than
+on disk. `../../references/desktop-agents.md` covers the capability envelope, the round
+trips that damage documents, and what is usually out of reach.
+
+Where you can reach the application, run its own accessibility checker as the tool pass and
+say you did. `../../references/builtin-checkers.md` covers Microsoft Office, Acrobat, and
+LibreOffice, what each catches, and the larger set each one misses.
+
+State the envelope in the report. A reader has to know whether "not tested" means the
+criterion passed nobody's notice or that nothing in this environment could test it.
 
 ## Scope the target
 
@@ -64,17 +92,24 @@ for example a web page that serves PDFs.
 | Word, PowerPoint, Excel, Google Docs, Markdown, EPUB | `../wcag-documents/SKILL.md` |
 | iOS, Android, React Native, Flutter, hybrid apps | `../wcag-mobile/SKILL.md` |
 | Any target, once findings exist and the user wants fixes | `../wcag-remediate/SKILL.md` |
+| A document that cannot be repaired in place, or a failed remediation pass | `../wcag-recreate/SKILL.md` |
 | VPAT, ACR, conformance statement, issue tickets, exec summary | `../wcag-report/SKILL.md` |
 
 Shared reference material lives in `../../references/`:
 
-- `sc-perceivable.md`, `sc-operable.md`, `sc-understandable.md`, `sc-robust.md` hold all 87
-  success criteria with intent, test method, and the failures that actually occur. Read the
-  files for the principles in play rather than all four by reflex.
+- `sc-perceivable.md`, `sc-operable.md`, `sc-understandable.md`, `sc-robust.md` hold every
+  success criterion with intent, test method, and the failures that actually occur. Read
+  the files for the principles in play rather than all four by reflex.
+- `sc-index.md` lists all 4 principles, 13 guidelines, and 86 criteria in one table. Read
+  it when you need the whole list at once, such as when building the criteria table.
 - `conformance.md` covers the five conformance requirements and what a claim may say.
 - `legal.md` maps laws and policies to the standard they require.
 - `media.md` covers captions, audio description, and transcripts across every format.
 - `severity.md` explains how to rank findings so the report is triageable.
+- `desktop-agents.md` covers working on someone's files and applications rather than on
+  source code, and what an agent can and cannot close on its own.
+- `builtin-checkers.md` covers the accessibility checkers inside Office, Acrobat, and
+  LibreOffice, and what each one does not look at.
 
 ## Find the bundled scripts
 
@@ -91,6 +126,8 @@ ls "${CLAUDE_PLUGIN_ROOT}/scripts" 2>/dev/null || \
 
 `contrast.py` for ratios (1.4.3, 1.4.6, 1.4.11). `html_audit.py` for static HTML with no
 browser. `axe_scan.py` for a live URL through Playwright. `pdf_audit.py` for PDF structure.
+`office_audit.py` for Word, PowerPoint, and Excel structure, with no Office installation
+needed. `office_remediate.py` to apply the derivable document fixes to a copy of the file.
 `report.py` to turn findings JSON into the report or a VPAT draft, with `--passed` and
 `--not-applicable` so the criteria table reflects what you established.
 
@@ -133,7 +170,7 @@ complaint, and the developer who receives it cannot act on it.
   "evidence": "<div class=\"lbl\">Postcode</div><input name=\"postcode\">",
   "fix": "Replace the div with <label for=\"postcode\">Postcode</label> and add id=\"postcode\" to the input.",
   "verification": "Focus the field with a screen reader and confirm it announces 'Postcode, edit text'.",
-  "source": "manual", "confidence": "confirmed"
+  "source": "manual", "confidence": "confirmed", "agent_fix": "direct"
 }
 ```
 
@@ -147,6 +184,13 @@ Field rules that matter:
   prioritised, and the field most often left vague.
 - `source` is `tool` or `manual`. `confidence` is `confirmed` when you observed the failure
   or `needs-review` when it depends on context you could not check.
+- `agent_fix` says who can actually close it, given what this environment can reach.
+  `direct` when you can apply it yourself and the correct value is derivable. `app` when it
+  needs the authoring application. `recreate` when the file cannot carry the fix at all.
+  `owner` when the content is information you do not have. `design` when someone has to
+  choose. `../../references/desktop-agents.md` defines the five and how to assign them.
+  Anything other than `direct` is work for a person, and the audit has to say so rather
+  than leaving them to discover it.
 - Do not invent a count of affected users or a conformance percentage. Neither is derivable
   from an audit, and both destroy the report's credibility.
 
@@ -182,6 +226,10 @@ Counts by severity and by level. The three problems to fix first, named.
 ## Findings
 One entry per finding, ordered by severity, in the record format above.
 
+## What an agent cannot fix
+The findings needing the authoring application, the content owner, a design decision, or a
+rebuild. What is needed for each, and from whom.
+
 ## Criteria assessed
 A table of every criterion at the target level with pass, fail, not applicable, or
 not tested, so a reader can see the shape of the coverage.
@@ -192,6 +240,9 @@ What can and cannot be claimed, in the terms `references/conformance.md` allows.
 
 Lead with what was not tested, before the findings rather than after. A reader who skims
 only the top of the report should still come away with an accurate idea of its limits.
+
+Keep the section on what an agent cannot fix even when it is empty, and say it is empty. A
+reader deciding whether to book a person's time needs that answer either way.
 
 ## Honesty rules
 

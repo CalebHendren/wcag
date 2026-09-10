@@ -45,6 +45,8 @@ Three outcomes, and the advice differs sharply between them:
 **Untagged.** Report it as a single critical finding rather than enumerating everything
 downstream of it. There is no point listing missing alt text on a document that has no
 structure at all. The fix is to go back to the source file, fix it there, and re-export.
+Where the source is gone, this is a `recreate` finding rather than a remediation one:
+`../wcag-recreate/SKILL.md` covers rebuilding the document and what a rebuild costs.
 
 **Tagged but wrong.** This is the common case and where audit effort pays off. The tags
 exist, so go through them: reading order, heading levels, figure alt, table headers, form
@@ -163,6 +165,8 @@ open-source PDF/UA validator and covers the machine-checkable Matterhorn conditi
 properly. **Acrobat's accessibility checker** is what most document owners have, and its
 report is the vocabulary they will use. **PAC** shows a screen-reader preview of the
 reading order, which is the fastest way for a person to see an order problem.
+`../../references/builtin-checkers.md` covers how to reach each one, what Acrobat's full
+check reports, and why its autotag is a starting point rather than a fix.
 
 Recommending these is not an admission that the audit was thin. It is how a real
 accessibility team works, and the skill's value is the judgement those tools do not make.
@@ -185,5 +189,10 @@ Read `../wcag-remediate/SKILL.md` first. PDF-specific notes:
   reads confidently and wrongly is worse than one that reads as unstructured.
 - After any change, re-run `pdf_audit.py` and re-read the document in order. A PDF edit
   that silently corrupts the tag tree looks fine in a viewer.
+- When a scripted fix will not apply, or when the file needs a structure tree it does not
+  have, stop rather than escalating the tooling. Say what failed, and offer to rebuild the
+  document from its content instead. `../wcag-recreate/SKILL.md` covers that, including the
+  case where the PDF is a record and the accessible version has to be a companion to it
+  rather than a replacement for it.
 - Never invent alternative text for an image whose content you cannot see. Report the gap
   and name what the author has to supply.

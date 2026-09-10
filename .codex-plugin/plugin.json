@@ -1,7 +1,7 @@
 {
   "name": "wcag",
-  "version": "0.1.0",
-  "description": "Audits web pages, PDFs, documents, and mobile apps against WCAG 2.2 and fixes what it finds when asked. Loads as seven skills.",
+  "version": "0.2.0",
+  "description": "Audits web pages, PDFs, documents, and mobile apps against WCAG 2.2, fixes what it finds when asked, and rebuilds what cannot be fixed. Loads as eight skills.",
   "author": {
     "name": "Caleb Hendren",
     "url": "https://github.com/CalebHendren"
@@ -14,7 +14,7 @@
   "interface": {
     "displayName": "WCAG",
     "shortDescription": "Accessibility auditing and remediation against WCAG 2.2.",
-    "longDescription": "Seven skills covering web pages, PDFs, office documents, and mobile apps. Audit mode reads and reports without changing anything. Remediation is a separate, explicit request, with rules for what can be fixed automatically and what needs the content owner. Bundles scripts for contrast ratios, static HTML checks, axe-core scans, PDF structure, and report generation.",
+    "longDescription": "Eight skills covering web pages, PDFs, office documents, and mobile apps, for agents editing source code and for agents working on someone's files. Audit mode reads and reports without changing anything. Remediation is a separate, explicit request, with rules for what can be fixed automatically, what needs the authoring application, and what needs the content owner. Recreate mode rebuilds a document that cannot be repaired. Bundles scripts for contrast ratios, static HTML checks, axe-core scans, PDF and Office structure, direct Office remediation, and report generation.",
     "developerName": "Caleb Hendren",
     "category": "Quality"
   }

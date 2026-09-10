@@ -1,8 +1,8 @@
 {
   "name": "wcag",
   "displayName": "WCAG Audit and Remediation",
-  "description": "Audits web pages, PDFs, documents, and mobile apps against WCAG 2.2 and fixes what it finds when asked. Loads as seven skills.",
-  "version": "0.1.0",
+  "description": "Audits web pages, PDFs, documents, and mobile apps against WCAG 2.2, fixes what it finds when asked, and rebuilds what cannot be fixed. Loads as eight skills.",
+  "version": "0.2.0",
   "author": {
     "name": "Caleb Hendren",
     "url": "https://github.com/CalebHendren"

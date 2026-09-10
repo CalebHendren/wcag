@@ -211,6 +211,72 @@ def check_criteria_table() -> None:
         note("criteria catalogue: every criterion has an entry")
 
 
+def check_criteria_index() -> None:
+    """references/sc-index.md is generated, so it must match its generator."""
+    builder = ROOT / "scripts/build_sc_index.py"
+    index = ROOT / "references/sc-index.md"
+    if not builder.is_file():
+        fail("scripts/build_sc_index.py: missing")
+        return
+    if not index.is_file():
+        fail("references/sc-index.md: missing. Run "
+             "python3 scripts/build_sc_index.py")
+        return
+    namespace: dict = {"__name__": "selfcheck", "__file__": str(builder)}
+    exec(compile(builder.read_text(encoding="utf-8"), str(builder), "exec"), namespace)
+    if namespace["render"]() != index.read_text(encoding="utf-8"):
+        fail("references/sc-index.md does not match scripts/build_sc_index.py. Run "
+             "python3 scripts/build_sc_index.py")
+        return
+    listed = len(re.findall(r"^\| \d+\.\d+\.\d+ \|", index.read_text(encoding="utf-8"),
+                            re.M))
+    if listed != sum(EXPECTED_LEVELS.values()):
+        fail(f"references/sc-index.md lists {listed} criteria, expected "
+             f"{sum(EXPECTED_LEVELS.values())}")
+        return
+    note(f"criteria index: {listed} criteria, current")
+
+
+def check_agent_fix() -> None:
+    """The fixability vocabulary has to mean the same thing everywhere."""
+    schema_path = ROOT / "assets/finding-schema.json"
+    if not schema_path.is_file():
+        fail("assets/finding-schema.json: missing")
+        return
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    values = set(schema.get("properties", {}).get("agent_fix", {}).get("enum", []))
+    if not values:
+        fail("assets/finding-schema.json: no agent_fix enum. The audit has no way to "
+             "say which findings an agent cannot close.")
+        return
+    reference = ROOT / "references/desktop-agents.md"
+    if reference.is_file():
+        text = reference.read_text(encoding="utf-8")
+        undocumented = sorted(v for v in values if f"`{v}`" not in text)
+        if undocumented:
+            fail(f"references/desktop-agents.md does not define agent_fix value(s) "
+                 f"{', '.join(undocumented)}")
+            return
+    report = ROOT / "scripts/report.py"
+    namespace: dict = {}
+    exec(compile(report.read_text(encoding="utf-8"), str(report), "exec"),
+         {"__name__": "selfcheck"}, namespace)
+    labelled = set(namespace.get("AGENT_FIX_LABELS", {}))
+    if labelled != values:
+        fail(f"scripts/report.py AGENT_FIX_LABELS is {sorted(labelled)}, but the "
+             f"schema allows {sorted(values)}. A finding would render without a label.")
+        return
+    for script in ("office_audit.py",):
+        source = (ROOT / "scripts" / script).read_text(encoding="utf-8")
+        emitted = set(re.findall(r'"(direct|app|recreate|owner|design)"', source))
+        unknown = emitted - values
+        if unknown:
+            fail(f"scripts/{script} emits agent_fix value(s) {sorted(unknown)} that "
+                 "the schema does not allow")
+            return
+    note(f"agent_fix vocabulary: {', '.join(sorted(values))}, consistent")
+
+
 def check_prose() -> None:
     """The docs follow the anti-slop rules, which ban the em dash outright."""
     offenders = []
@@ -237,6 +303,8 @@ def main(argv=None) -> int:
     check_skills()
     check_scripts()
     check_criteria_table()
+    check_criteria_index()
+    check_agent_fix()
     check_links()
     check_prose()
 

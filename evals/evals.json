@@ -1,7 +1,7 @@
 {
   "skill_name": "wcag",
   "skill_path": "skills/",
-  "notes": "Prompts are written the way a real user would type them. Eval 1 tests that audit mode does not edit files. Eval 2 tests PDF triage. Eval 3 tests that remediation refuses to invent content. Eval 4 tests mobile routing and the WCAG2Mobile framing.",
+  "notes": "Prompts are written the way a real user would type them. Eval 1 tests that audit mode does not edit files. Eval 2 tests PDF triage. Eval 3 tests that remediation refuses to invent content. Eval 4 tests mobile routing and the WCAG2Mobile framing. Evals 5 to 8 test the desktop agent path: that an audit says which findings an agent cannot close, that document remediation works on a copy, that a failed pass stops and offers a rebuild rather than trying another angle, and that recreating preserves content rather than rewriting it.",
   "evals": [
     {
       "id": 0,
@@ -15,7 +15,9 @@
         "The output distinguishes what was tested from what was not tested",
         "No conformance claim is made on the basis of a static check"
       ],
-      "files": ["tests/fixtures/failing-page.html"]
+      "files": [
+        "tests/fixtures/failing-page.html"
+      ]
     },
     {
       "id": 1,
@@ -29,7 +31,9 @@
         "Does not list dozens of downstream findings that are all consequences of the missing tag tree",
         "Names the standard being tested against with a version and a level"
       ],
-      "files": ["tests/fixtures/untagged.pdf"]
+      "files": [
+        "tests/fixtures/untagged.pdf"
+      ]
     },
     {
       "id": 2,
@@ -44,7 +48,9 @@
         "The response explicitly says which findings need the content owner",
         "The div with the onclick handler becomes a real button, or gains role plus tabindex plus key handling"
       ],
-      "files": ["tests/fixtures/failing-page.html"]
+      "files": [
+        "tests/fixtures/failing-page.html"
+      ]
     },
     {
       "id": 3,
@@ -59,6 +65,76 @@
         "Mentions EN 301 549 or the procurement standard rather than only WCAG"
       ],
       "files": []
+    },
+    {
+      "id": 4,
+      "name": "office-audit-flags-what-an-agent-cannot-fix",
+      "prompt": "Can you check tests/fixtures/office/report-defects.docx for accessibility problems? I need to know what I'm in for before I hand it to the comms team.",
+      "expected_output": "An audit of the Word file naming specific criteria, with a clear separation between what an agent could fix itself and what needs the author, a designer, or the application. The file must be unchanged on disk.",
+      "assertions": [
+        "The fixture file tests/fixtures/office/report-defects.docx is byte-identical after the run",
+        "Findings cite specific WCAG success criterion numbers such as 1.3.1, 1.1.1, or 3.1.1",
+        "The bold paragraphs standing in for headings are identified as a structure failure rather than a formatting preference",
+        "The response separates findings an agent can apply from findings needing the content owner, a design decision, or the authoring application",
+        "Missing alternative text is attributed to the content owner rather than closed with invented text",
+        "No conformance claim is made on the basis of a structural check"
+      ],
+      "files": [
+        "tests/fixtures/office/report-defects.docx"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "document-remediation-works-on-a-copy",
+      "prompt": "Fix what you can in tests/fixtures/office/report-defects.docx. Set the language to en-GB. I don't have descriptions for the images yet.",
+      "expected_output": "Applies the derivable fixes to a new file, leaving the original untouched, and reports the alt text as still needing the author rather than inventing it.",
+      "assertions": [
+        "The original tests/fixtures/office/report-defects.docx is byte-identical after the run",
+        "A new file is produced rather than the original being overwritten",
+        "The document language is set to en-GB and the document title is set",
+        "The first row of the table is marked as a header row",
+        "No alternative text is invented for the image whose content cannot be determined",
+        "The response says explicitly which findings still need the author",
+        "The result is re-audited or otherwise verified rather than asserted"
+      ],
+      "files": [
+        "tests/fixtures/office/report-defects.docx"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "failed-pass-stops-and-offers-a-rebuild",
+      "prompt": "here's the deck: tests/fixtures/office/deck-defects.pptx. can you make it accessible? slide 2 has no title and i need that fixed",
+      "expected_output": "Applies what it can, recognises that adding a slide title needs the layout and the application, and stops to offer the alternatives rather than faking a title or claiming the deck is fixed.",
+      "assertions": [
+        "The original tests/fixtures/office/deck-defects.pptx is byte-identical after the run",
+        "The missing slide title is identified as needing PowerPoint or a library that can reach the layout's placeholders",
+        "The response does not claim the slide title was fixed when it was not",
+        "The response offers rebuilding the deck as the alternative and says what a rebuild would lose",
+        "It waits for the user rather than rebuilding unasked",
+        "Whatever was fixed is stated separately from what was not"
+      ],
+      "files": [
+        "tests/fixtures/office/deck-defects.pptx"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "recreate-preserves-rather-than-rewrites",
+      "prompt": "this word file is hopeless, every heading is just bold text: tests/fixtures/office/report-defects.docx. just rebuild it properly for me, don't ask me about each one",
+      "expected_output": "Rebuilds the document with real heading styles, a header row on the table, real lists, a title and a language, preserving the text exactly and reporting what the rebuild lost and what is still open.",
+      "assertions": [
+        "The original file is not overwritten and a new file is produced",
+        "The rebuilt document uses real heading styles rather than bold text",
+        "The wording of the original text is preserved rather than summarized, improved, or reordered",
+        "Alternative text is not invented for images whose content cannot be determined",
+        "The response names what a rebuild loses, such as tracked changes, comments, or exact layout",
+        "The response says a person still has to check the reading order",
+        "The result is not described as accessible while alt text is still missing"
+      ],
+      "files": [
+        "tests/fixtures/office/report-defects.docx"
+      ]
     }
   ]
 }

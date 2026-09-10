@@ -3,29 +3,111 @@
   "title": "WCAG finding",
   "description": "One accessibility finding. Every wcag script emits this shape, and report.py consumes it.",
   "type": "object",
-  "required": ["id", "sc", "level", "severity", "location", "issue", "fix"],
+  "required": [
+    "id",
+    "sc",
+    "level",
+    "severity",
+    "location",
+    "issue",
+    "fix"
+  ],
   "properties": {
-    "id": {"type": "string", "description": "Stable within one report, e.g. F-012"},
-    "sc": {"type": "string", "description": "The success criterion violated, e.g. 1.3.1"},
-    "sc_title": {"type": "string", "description": "The criterion's title from the specification"},
-    "level": {"enum": ["A", "AA", "AAA", "n/a"]},
+    "id": {
+      "type": "string",
+      "description": "Stable within one report, e.g. F-012"
+    },
+    "sc": {
+      "type": "string",
+      "description": "The success criterion violated, e.g. 1.3.1"
+    },
+    "sc_title": {
+      "type": "string",
+      "description": "The criterion's title from the specification"
+    },
+    "level": {
+      "enum": [
+        "A",
+        "AA",
+        "AAA",
+        "n/a"
+      ]
+    },
     "severity": {
-      "enum": ["critical", "high", "medium", "low", "advisory"],
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "advisory"
+      ],
       "description": "Consequence for users, not conformance level. See references/severity.md."
     },
-    "location": {"type": "string", "description": "file:line, page number, URL, or screen name"},
-    "selector": {"type": ["string", "null"], "description": "CSS selector or element path"},
-    "issue": {"type": "string", "description": "What is wrong, stated concretely"},
-    "impact": {"type": "string", "description": "Who is affected and what they cannot do"},
-    "evidence": {"type": ["string", "null"], "description": "The offending markup or value"},
-    "fix": {"type": "string", "description": "The specific change to make"},
-    "verification": {"type": "string", "description": "How to confirm the fix worked"},
-    "source": {"enum": ["tool", "manual"], "description": "Whether a scanner or a person found it"},
+    "location": {
+      "type": "string",
+      "description": "file:line, page number, URL, or screen name"
+    },
+    "selector": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "CSS selector or element path"
+    },
+    "issue": {
+      "type": "string",
+      "description": "What is wrong, stated concretely"
+    },
+    "impact": {
+      "type": "string",
+      "description": "Who is affected and what they cannot do"
+    },
+    "evidence": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The offending markup or value"
+    },
+    "fix": {
+      "type": "string",
+      "description": "The specific change to make"
+    },
+    "verification": {
+      "type": "string",
+      "description": "How to confirm the fix worked"
+    },
+    "source": {
+      "enum": [
+        "tool",
+        "manual"
+      ],
+      "description": "Whether a scanner or a person found it"
+    },
     "confidence": {
-      "enum": ["confirmed", "needs-review"],
+      "enum": [
+        "confirmed",
+        "needs-review"
+      ],
       "description": "needs-review when it depends on context that was not checked"
     },
-    "rule": {"type": "string", "description": "The scanner's own rule id, where one exists"},
-    "matterhorn": {"type": "string", "description": "Matterhorn Protocol checkpoint, for PDF findings"}
+    "agent_fix": {
+      "enum": [
+        "direct",
+        "app",
+        "recreate",
+        "owner",
+        "design"
+      ],
+      "description": "Who can close it. direct: an agent can apply it and the value is derivable. app: needs the authoring application. recreate: the file cannot carry the fix, see skills/wcag-recreate. owner: needs content only the author has. design: needs a design decision. See references/desktop-agents.md."
+    },
+    "rule": {
+      "type": "string",
+      "description": "The scanner's own rule id, where one exists"
+    },
+    "matterhorn": {
+      "type": "string",
+      "description": "Matterhorn Protocol checkpoint, for PDF findings"
+    }
   }
 }
