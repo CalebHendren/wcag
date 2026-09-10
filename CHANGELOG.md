@@ -2,6 +2,8 @@
 
 ## 0.2.0
 
+**Codex and Cursor now get their own install instructions.** The README's combined "Cursor and Codex" section assumed both tools understand a plugin manifest the same way. Cursor does, through its plugin installer. Codex CLI has no plugin marketplace, so its section now gives the actual mechanism: point a project's `AGENTS.md` at the router skill, or copy the skills, references, and scripts into Codex's own config directory for every project.
+
 The skills now work for an agent operating someone's documents and applications, not only
 for one editing source code. Claude Cowork, ChatGPT's work and agent modes, Copilot inside
 Office, and anything else that can open a folder and drive an application can apply the

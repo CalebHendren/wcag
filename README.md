@@ -69,11 +69,55 @@ agent, and the laws that point at each standard.
 /plugin install wcag@wcag
 ```
 
-### Cursor and Codex
+### Cursor
 
-The repository carries `.cursor-plugin/plugin.json` and `.codex-plugin/plugin.json`
-alongside the Claude manifest, so the same skills load in either. Point your tool's plugin
-installer at this repository.
+The repository carries `.cursor-plugin/plugin.json` alongside the Claude manifest, so the
+same skills load there too. Point Cursor's plugin installer at this repository, or clone it
+and add the path directly:
+
+```bash
+git clone https://github.com/CalebHendren/wcag
+```
+
+Then, in Cursor: Settings, Plugins, Add from folder, and select the cloned `wcag`
+directory. `rules/wcag.mdc` loads automatically for any file matching its globs, which
+covers HTML, JSX and framework components, Swift, Kotlin, Dart, PDFs, and Office files.
+
+### Codex
+
+Codex CLI has no plugin marketplace, so install by making the skills visible to it, either
+for one project or for every session. Two ways:
+
+**Project-scoped**, for one codebase. Clone the plugin inside the project so Codex can
+reach the skill files, then point your project's own `AGENTS.md` at the router skill:
+
+```bash
+git clone https://github.com/CalebHendren/wcag .codex/wcag
+```
+
+Add a line to your project's `AGENTS.md` (Codex CLI reads `AGENTS.md` files under the
+working directory automatically):
+
+```markdown
+For any accessibility, a11y, or WCAG task, read `.codex/wcag/skills/wcag/SKILL.md` first.
+It routes to the right skill for the target and defines the finding record the rest share.
+```
+
+`.codex/wcag/rules/wcag.md` has a shorter version of the same pointer if you would rather
+paste it in directly.
+
+**Global**, for every project. Copy the skills, references, and scripts into Codex's own
+config directory, the same way as any agent that reads skill folders:
+
+```bash
+git clone https://github.com/CalebHendren/wcag /tmp/wcag
+mkdir -p ~/.codex/skills
+cp -r /tmp/wcag/skills/* ~/.codex/skills/
+cp -r /tmp/wcag/references /tmp/wcag/scripts ~/.codex/
+```
+
+Check `codex --help` or your installed version's docs for the current skills directory
+name, since Codex CLI's layout has moved before.
 
 ### Claude Cowork, ChatGPT, and other desktop agents
 
